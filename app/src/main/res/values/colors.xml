@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="grey_dark">#212121</color>
+    <color name="teal_light">#A8D5CC</color>
+    <color name="teal_dark">#2D4D48</color>
+    <color name="forest_green_dark">#1E3324</color>
+    <color name="mint_light">#F4FBFA</color>
+    <color name="ic_launcher_background">#1E3324</color>
+</resources>

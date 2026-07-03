@@ -1,0 +1,36 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.InventoryTracking" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <item name="colorPrimary">@color/forest_green_dark</item>
+        <item name="colorOnPrimary">@color/mint_light</item>
+
+        <item name="colorSecondary">@color/teal_dark</item>
+        <item name="colorOnSecondary">@color/mint_light</item>
+
+        <item name="colorTertiary">@color/teal_dark</item>
+        <item name="colorOnTertiary">@color/mint_light</item>
+
+        <item name="colorSurface">@color/mint_light</item>
+        <item name="colorOnSurface">@color/forest_green_dark</item>
+        <item name="android:colorBackground">@color/teal_light</item>
+        <item name="colorOnBackground">@color/forest_green_dark</item>
+        <item name="toolbarStyle">@style/CustomToolbarStyle</item>
+    </style>
+
+    <style name="DialogBackground">
+        <item name="android:background">@color/mint_light</item>
+    </style>
+
+
+    <style name="CustomToolbarStyle" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/forest_green_dark</item>
+    </style>
+
+    <style name="CardLabel">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    <style name="Theme.InventoryTracking" parent="Base.Theme.InventoryTracking" />
+</resources>

@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Inventory Tracking</string>
+    <string name="login_button">Login</string>
+    <string name="create_button">Create User</string>
+    <string name="username_field">Enter Username</string>
+    <string name="password_field">Enter Password</string>
+    <string name="app_title">Digital Warehouse Inventory Tracking</string>
+    <string name="quantity">Quantity</string>
+    <string name="confirm">Confirm</string>
+    <string name="delete">Delete</string>
+    <string name="item_details">Item Details</string>
+    <string name="delete_item">Delete item</string>
+    <string name="item_image">Item image</string>
+    <string name="adds_new_item_to_inventory">Adds new item to inventory</string>
+    <string name="inventory_title">Inventory</string>
+    <string name="inventory_header">Inventory</string>
+    <string name="inventory_permission_message">This app needs permission to send SMS messages. Permissions are used to send notifications about inventory stock levels.</string>
+    <string name="grant_sms_permission_button">Grant SMS Permission</string>
+    <string name="sms_notifications_header">SMS Notifications</string>
+    <string name="item_name">Item Name</string>
+    <string name="qty">Qty: </string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="increment_item_description">Increment item by one</string>
+    <string name="exit_button_description">Exit dialog window</string>
+    <string name="decrement_item_description">Decrement item by one</string>
+    <string name="decline_sms">Decline</string>
+
+</resources>
