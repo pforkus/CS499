@@ -1,56 +1,56 @@
 package com.zybooks.inventorytracking;
 
-import android.graphics.Color;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.color.MaterialColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import androidx.appcompat.app.AlertDialog;
+import java.util.Objects;
 
 public class DashboardActivity extends AppCompatActivity {
 
     private InventoryViewModel mViewModel;
     private InventoryAdapter mAdapter;
+    private LinearLayoutManager mLinearLayoutManager;
+    private GridLayoutManager mGridLayoutManager;
+    private RecyclerView mRecyclerView;
+    private DrawerLayout mDrawLayout;
+    private static final int COLUMN_COUNT = 3;
+    private boolean mIsGridView = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        // Adjust padding to avoid content being hidden behind system bars
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        setupToolbar();
+        setupDrawer();
+        setupWindowInsets();
+        setupRecyclerView();
+        setupFab();
+        setupViewModel();
+        setupClickListener();
 
-        });
+    }
 
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        FloatingActionButton fab = findViewById(R.id.floatingActionButton);
-
-        // Sets the recycler view layout to a grid with 3 columns
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-
-        mAdapter = new InventoryAdapter();
-        recyclerView.setAdapter(mAdapter);
-
-        mViewModel = new ViewModelProvider(this).get(InventoryViewModel.class);
-
-        // Observe the item list and update adapter when data changes
-        mViewModel.getAllItems().observe(this, items -> {
-            mAdapter.setItems(items);
-        });
-
-        // Creates click listener for recycler view cells
-        // When a cell is clicked, opens ItemDialogFragment for selected item
+    // Creates click listener for recycler view cells
+    // When a cell is clicked, opens ItemDialogFragment for selected item
+    private void setupClickListener() {
         mAdapter.setOnItemClickListener(item ->{
             ItemDialogFragment dialog = ItemDialogFragment.newInstance(item);
 
@@ -68,26 +68,20 @@ public class DashboardActivity extends AppCompatActivity {
             });
             dialog.show(getSupportFragmentManager(), "ItemDialog");
         });
+    }
 
-        // Creates click listener for delete button - opens confirmation dialog when pressed
-        mAdapter.setOnDeleteClickListener(item -> {
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("Delete Item")
-                    .setMessage("Are you sure you want to delete this item?")
-                    .setPositiveButton("Delete", (d, which) -> {
-                        mViewModel.deleteItem(item);
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .create();
-            dialog.show();
+    private void setupViewModel() {
+        // Sets the viewmodel
+        mViewModel = new ViewModelProvider(this).get(InventoryViewModel.class);
 
-            // Set button colors explicitly for contrast
-            int color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
-        });
+        // Observe the item list and update adapter when data changes
+        mViewModel.getAllItems().observe(this, items -> mAdapter.setItems(items));
+    }
 
-        // Open dialog to create new inventory item
+    private void setupFab() {
+        FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+
+        // Click listener for new inventory item dialog
         fab.setOnClickListener(v -> {
             // Pass null here to indicate this is a new item with no data to populate fields
             ItemDialogFragment dialog = ItemDialogFragment.newInstance(null);
@@ -101,10 +95,96 @@ public class DashboardActivity extends AppCompatActivity {
 
                 @Override
                 public void onItemDeleted(InventoryItem deletedItem) {
-                // Not applicable for creating new items
+                    // Not applicable for creating new items
                 }
             });
             dialog.show(getSupportFragmentManager(), "ItemDialog");
         });
     }
+
+    private void setupRecyclerView() {
+        mRecyclerView = findViewById(R.id.recyclerView);
+        // Sets up the recycler view layout options
+        mGridLayoutManager = new GridLayoutManager(this, COLUMN_COUNT);
+        mLinearLayoutManager = new LinearLayoutManager(this);
+
+        // Sets default layout manager
+        mRecyclerView.setLayoutManager(mGridLayoutManager);
+
+        // Creates an adapter and connects to recyclerview
+        mAdapter = new InventoryAdapter();
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    private void setupWindowInsets() {
+        // Adjust padding to avoid content being hidden behind system bars
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+
+        });
+    }
+
+    private void setupDrawer() {
+        mDrawLayout = findViewById(R.id.drawer_layout);
+        NavigationView navView = findViewById(R.id.nav_view);
+        navView.setNavigationItemSelectedListener(this::handleDrawerItemClick);
+    }
+
+    private void setupToolbar() {
+        setSupportActionBar(findViewById(R.id.toolbar));
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.dashboard_menu, menu);
+        return true;
+    }
+
+
+    // Handles Toolbar item selections, manages layout view and menu selection
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        // Opens menu
+        if(id == R.id.action_menu) {
+            mDrawLayout.openDrawer(GravityCompat.END);
+            return true;
+        }
+
+        // Toggles grid view and list view
+        if(id == R.id.action_toggle_layout) {
+            toggleLayoutManager();
+            item.setIcon(mIsGridView ? R.drawable.ic_grid_view : R.drawable.ic_list_view);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // Handles menu selections
+    private boolean handleDrawerItemClick(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.nav_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_logout) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        } else if (id == R.id.nav_exit) {
+            finishAffinity();
+        }
+        mDrawLayout.closeDrawer(GravityCompat.END);
+        return true;
+    }
+    private void toggleLayoutManager() {
+        mIsGridView = !mIsGridView;
+        mRecyclerView.setLayoutManager(mIsGridView ? mGridLayoutManager : mLinearLayoutManager);
+    }
+
 }

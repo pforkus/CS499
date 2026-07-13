@@ -27,9 +27,7 @@ public class InventoryViewModel extends AndroidViewModel {
         return mRepository.getItem(id);
     }
 
-    public void addItem(InventoryItem item) {
-        mRepository.addItem(item);
-    }
+    public void addItem(InventoryItem item) { mRepository.addItem(item); }
 
     public void updateItem(InventoryItem item) {
         mRepository.updateItem(item);

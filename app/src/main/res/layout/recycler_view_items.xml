@@ -30,18 +30,6 @@
             android:layout_marginBottom="30dp"
             tools:src="@drawable/vector_logo" />
 
-        <ImageButton
-            android:id="@+id/delete_button"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/delete"
-            app:tint="?attr/colorOnSurface"
-            android:contentDescription="@string/delete_item"
-            android:scaleType="fitCenter"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            />
 
         <TextView
             android:id="@+id/item_text_name"

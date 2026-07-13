@@ -25,7 +25,9 @@
 
     <style name="CustomToolbarStyle" parent="Widget.Material3.Toolbar">
         <item name="android:background">@color/forest_green_dark</item>
+        <item name="titleTextColor">@color/teal_light</item>
     </style>
+
 
     <style name="CardLabel">
         <item name="android:textSize">14sp</item>

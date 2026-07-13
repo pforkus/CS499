@@ -5,9 +5,7 @@ import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,24 +19,15 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
 
     private List<InventoryItem> mItems = new ArrayList<>();
     private OnItemClickListener mItemClickListener;
-    private OnDeleteClickListener mDeleteClickListener;
 
     // Interface for handling item cell clicks
     public interface OnItemClickListener {
         void onItemClick(InventoryItem item);
     }
 
-    // Interface for handling delete button clicks
-    public interface OnDeleteClickListener {
-        void onDeleteClick(InventoryItem item);
-    }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         mItemClickListener = listener;
-    }
-
-    public void setOnDeleteClickListener(OnDeleteClickListener listener) {
-        mDeleteClickListener = listener;
     }
 
     // Inflates the item layout and returns new viewholder
@@ -68,19 +57,18 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
         notifyDataSetChanged();
     }
 
-    class ItemViewHolder extends RecyclerView.ViewHolder {
+     class ItemViewHolder extends RecyclerView.ViewHolder {
         private final TextView mNameTextView;
         private final TextView mQuantityTextView;
         private final ImageView mItemImageView;
-        private final ImageButton mDeleteButton;
 
 
-        public ItemViewHolder(@NonNull View itemView) {
+
+        ItemViewHolder(@NonNull View itemView) {
             super(itemView);
             mNameTextView = itemView.findViewById(R.id.item_text_name);
             mQuantityTextView = itemView.findViewById(R.id.item_quantity);
             mItemImageView = itemView.findViewById(R.id.item_image_view);
-            mDeleteButton = itemView.findViewById(R.id.delete_button);
         }
 
         // Bind inventoryitem data to viewholder view
@@ -105,13 +93,6 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             itemView.setOnClickListener(v ->{
                 if (mItemClickListener != null) {
                     mItemClickListener.onItemClick(item);
-                }
-            });
-
-            // Trigger delete click listener if one is registered
-            mDeleteButton.setOnClickListener(v -> {
-                if(mDeleteClickListener != null) {
-                    mDeleteClickListener.onDeleteClick(item);
                 }
             });
         }
