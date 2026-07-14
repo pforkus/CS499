@@ -30,6 +30,7 @@ public class DashboardActivity extends AppCompatActivity {
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
     private DrawerLayout mDrawLayout;
+    private SelectionModeController mSelectionModeController;
     private static final int COLUMN_COUNT = 3;
     private boolean mIsGridView = true;
 
@@ -45,6 +46,7 @@ public class DashboardActivity extends AppCompatActivity {
         setupFab();
         setupViewModel();
         setupClickListener();
+        setupSelectionListener();
 
     }
 
@@ -52,6 +54,7 @@ public class DashboardActivity extends AppCompatActivity {
     // When a cell is clicked, opens ItemDialogFragment for selected item
     private void setupClickListener() {
         mAdapter.setOnItemClickListener(item ->{
+
             ItemDialogFragment dialog = ItemDialogFragment.newInstance(item);
 
             // Listen for results from dialog - save/delete actions
@@ -67,6 +70,28 @@ public class DashboardActivity extends AppCompatActivity {
                 }
             });
             dialog.show(getSupportFragmentManager(), "ItemDialog");
+        });
+    }
+
+    private void setupSelectionListener() {
+        mSelectionModeController = new SelectionModeController(
+                this,
+                mAdapter,
+                R.menu.selection_menu,
+                ((menuItemId, selectedItems) -> {
+                    if(menuItemId == R.id.action_delete) {
+                        mViewModel.deleteItems(selectedItems);
+                    }
+                })
+        );
+        // Exit Action Mode if nothing is selected
+        mAdapter.setOnSelectionStateChangedListener(() -> {
+            if (mAdapter.selection.isActive()) {
+                mSelectionModeController.start();
+                mSelectionModeController.updateTitle();
+            } else {
+                mSelectionModeController.finish();
+            }
         });
     }
 
@@ -95,7 +120,7 @@ public class DashboardActivity extends AppCompatActivity {
 
                 @Override
                 public void onItemDeleted(InventoryItem deletedItem) {
-                    // Not applicable for creating new items
+
                 }
             });
             dialog.show(getSupportFragmentManager(), "ItemDialog");

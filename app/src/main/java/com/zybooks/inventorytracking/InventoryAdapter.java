@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -19,12 +20,23 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
 
     private List<InventoryItem> mItems = new ArrayList<>();
     private OnItemClickListener mItemClickListener;
+    private OnSelectionStateChangedListener mSelectionStateChangedListener;
+
+    // Multiselect state
+    public final SelectionTracker<Long> selection = new SelectionTracker<>();
 
     // Interface for handling item cell clicks
     public interface OnItemClickListener {
         void onItemClick(InventoryItem item);
     }
 
+    // Interface for notifying host that selection has changed
+    public interface OnSelectionStateChangedListener {
+        void onSelectionChanged();
+    }
+    public void setOnSelectionStateChangedListener(OnSelectionStateChangedListener listener) {
+        mSelectionStateChangedListener = listener;
+    }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         mItemClickListener = listener;
@@ -56,6 +68,38 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
         mItems = items;
         notifyDataSetChanged();
     }
+
+    // ==========
+    // Multi - Select
+    // ==========
+
+    // Returns the  currently selected items for the host to act on
+    public List<InventoryItem> getSelectedItems() {
+        List<InventoryItem> result = new ArrayList<>();
+        for (InventoryItem item: mItems) {
+            if(selection.isSelected(item.getId())) {
+                result.add(item);
+            }
+        }
+        return result;
+     }
+
+     private void toggleSelection(InventoryItem item, int position) {
+        selection.toggle(item.getId());
+        notifyItemChanged(position);
+
+        if(mSelectionStateChangedListener != null) {
+            mSelectionStateChangedListener.onSelectionChanged();
+        }
+        if(!selection.isActive()) {
+            notifyDataSetChanged();
+        }
+     }
+
+     public void clearSelection() {
+        selection.clear();
+        notifyDataSetChanged();
+     }
 
      class ItemViewHolder extends RecyclerView.ViewHolder {
         private final TextView mNameTextView;
@@ -89,11 +133,34 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
                 mItemImageView.setImageResource(R.drawable.vector_logo);
             }
 
-            // Trigger item click listener if one is registered
+            // Multi Select UI state
+            boolean isSelected = selection.isSelected(item.getId());
+            itemView.setActivated(isSelected);
+
+
+
+            // Tap: toggle selection if in selection ode, otherwise opens item dialog
             itemView.setOnClickListener(v ->{
-                if (mItemClickListener != null) {
+                int position = getBindingAdapterPosition();
+                if(position == RecyclerView.NO_POSITION) return;
+
+                if (selection.isActive()) {
+                    toggleSelection(item, position);
+
+                } else if (mItemClickListener != null) {
                     mItemClickListener.onItemClick(item);
                 }
+            });
+
+            //Long-press: enter selection mode
+            itemView.setOnLongClickListener(v -> {
+                int position = getBindingAdapterPosition();
+                if(position == RecyclerView.NO_POSITION) return false;
+
+                if(!selection.isActive()) {
+                    toggleSelection(item, getBindingAdapterPosition());
+                }
+                return true;
             });
         }
     }

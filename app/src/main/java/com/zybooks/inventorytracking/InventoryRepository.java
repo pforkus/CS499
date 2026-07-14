@@ -98,4 +98,8 @@ public class InventoryRepository {
     public void deleteItem(InventoryItem item) {
         mExecutor.execute(() ->mInventoryItemDao.deleteItem(item));
     }
+
+    public void deleteItems(List<InventoryItem> items) {
+        mExecutor.execute(() -> mInventoryItemDao.deleteItems(items));
+    }
 }

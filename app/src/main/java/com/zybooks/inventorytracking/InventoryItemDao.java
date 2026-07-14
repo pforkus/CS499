@@ -24,4 +24,7 @@ public interface InventoryItemDao {
 
    @Delete
    void deleteItem(InventoryItem item);
+
+   @Delete
+    void deleteItems(List<InventoryItem> items);
 }

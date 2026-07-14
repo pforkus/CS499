@@ -36,4 +36,6 @@ public class InventoryViewModel extends AndroidViewModel {
     public void deleteItem(InventoryItem item) {
         mRepository.deleteItem(item);
     }
+
+    public void deleteItems(List<InventoryItem> items) { mRepository.deleteItems(items);}
 }
