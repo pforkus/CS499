@@ -118,7 +118,7 @@ public class ItemDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState){
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_item, null);
-        mItemNameEdit = view.findViewById(R.id.item_details);
+        mItemNameEdit = view.findViewById(R.id.item_text_name);
         mItemQuantityEdit = view.findViewById(R.id.item_quantity);
         mItemImage = view.findViewById(R.id.item_image);
         mIncrementButton = view.findViewById(R.id.increment_button);
@@ -361,14 +361,22 @@ public class ItemDialogFragment extends DialogFragment {
     }
 
     private void sendLowInventoryAlert(String itemName) {
+
+        SharedPreferences prefs = requireContext().getSharedPreferences("InventoryPrefs", Context.MODE_PRIVATE);
+        boolean alertsEnabled = prefs.getBoolean("sms_alerts_enabled", true);
+
+        if(!alertsEnabled) {
+            Log.d("SMS", "SMS permissions disabled by user");
+            return;
+        }
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.SEND_SMS)
         != PackageManager.PERMISSION_GRANTED) {
+            // TODO set up internal notification system, bell icon with alert dialog, listing low inventory? can be simple
             Log.d("SMS", "SMS Permissions have not been granted, skipping alert.");
             return;
         }
 
         // Retrieve number from shared preferences
-        SharedPreferences prefs = requireContext().getSharedPreferences("InventoryPrefs", Context.MODE_PRIVATE);
         String phoneNumber = prefs.getString("alert_phone_number", null);
 
         if(phoneNumber == null || phoneNumber.isEmpty()) {
@@ -380,6 +388,7 @@ public class ItemDialogFragment extends DialogFragment {
         String message = "Low Inventory Alert: " + itemName +
                 " is out of stock. Please consider replenishing.";
 
+        // Sends the SMS
         try {
             // Send SMS to saved number
             SmsManager smsManager = requireContext().getSystemService(SmsManager.class);

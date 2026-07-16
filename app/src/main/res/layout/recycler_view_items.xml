@@ -8,7 +8,8 @@
     android:clickable="true"
     android:focusable="true"
     card_view:cardCornerRadius="5dp"
-    card_view:cardUseCompatPadding="true">
+    card_view:cardUseCompatPadding="true"
+    android:layout_margin="5dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -40,6 +41,7 @@
             android:maxLines="1"
             android:ellipsize="end"
             style="@style/CardLabel"
+            android:gravity="center_horizontal"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -55,11 +57,10 @@
             android:text="@string/qty"
             style="@style/CardLabel"
             app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintHorizontal_bias="1"
+            android:gravity="end"
             app:layout_constraintEnd_toStartOf="@id/item_quantity"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="6dp"
-            android:layout_marginStart="6dp"
             />
 
         <TextView
@@ -69,8 +70,9 @@
             style="@style/CardLabel"
             android:ellipsize="end"
             android:maxLines="1"
-            android:maxWidth="60dp"
+            android:gravity="end"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/item_quantity_label"
             app:layout_constraintBottom_toBottomOf="parent"
             tools:text="999999999999999999999999999999999999999999999"
             />

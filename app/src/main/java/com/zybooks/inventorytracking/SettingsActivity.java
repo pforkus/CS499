@@ -1,12 +1,12 @@
 package com.zybooks.inventorytracking;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-
+import android.widget.Button;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -14,12 +14,11 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 
-import org.w3c.dom.Text;
-
-import java.util.Arrays;
 import java.util.Objects;
 
 public class SettingsActivity extends BaseActivity {
+
+    private boolean mIsApplyingTheme = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +29,8 @@ public class SettingsActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setTitle("Settings");
         toolbar.setNavigationOnClickListener(v -> finish());
+        Button smsButton = findViewById(R.id.sms_permission_edit_button);
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings_root), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -42,9 +43,15 @@ public class SettingsActivity extends BaseActivity {
             return insets;
         });
 
+        smsButton.setOnClickListener( v -> {
+            Intent intent = new Intent(this, SmsPermissionActivity.class);
+            startActivity(intent);
+        });
+
         // Settings
         setupThemeToggle();
         setupTextSizeToggle();
+        checkNotificationStatus();
     }
 
     @Override
@@ -53,6 +60,7 @@ public class SettingsActivity extends BaseActivity {
         return true;
     }
 
+    // Sets up the toggle group for theme options, saves selection in prefs
     private void setupThemeToggle() {
         MaterialButtonToggleGroup toggleGroup = findViewById(R.id.themeToggleGroup);
         String currentMode = ThemePrefs.get(this);
@@ -60,8 +68,14 @@ public class SettingsActivity extends BaseActivity {
         toggleGroup.check(currentButtonId);
 
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
+            if (!isChecked || mIsApplyingTheme) return;
+
             String selected = getModeForButtonId(checkedId);
+
+
+            mIsApplyingTheme = true;
+            toggleGroup.setEnabled(false);
+
             ThemePrefs.save(this, selected);
             ThemePrefs.applyTheme(selected);
         });
@@ -81,6 +95,7 @@ public class SettingsActivity extends BaseActivity {
         return ThemePrefs.SYSTEM;
     }
 
+    // Sets up the toggle group for text size options, saves state to prefs
     private void setupTextSizeToggle() {
         MaterialButtonToggleGroup textToggleGroup = findViewById(R.id.textSizeToggleGroup);
 
@@ -109,5 +124,17 @@ public class SettingsActivity extends BaseActivity {
         if(buttonId == R.id.btnLarge) return TextSizePrefs.LARGE;
         return TextSizePrefs.SMALL;
     }
+
+    private void checkNotificationStatus() {
+        SwitchCompat smsAlertSwitch = findViewById(R.id.sms_alerts_switch);
+        SharedPreferences prefs = getSharedPreferences("InventoryPrefs", Context.MODE_PRIVATE);
+
+        boolean alertsEnabled = prefs.getBoolean("sms_alerts_enabled", true);
+        smsAlertSwitch.setChecked(alertsEnabled);
+
+        smsAlertSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> prefs.edit().putBoolean("sms_alerts_enabled", isChecked).apply());
+    }
+
+
 
 }

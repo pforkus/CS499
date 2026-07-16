@@ -74,10 +74,18 @@ public class SmsPermissionActivity extends BaseActivity {
                 .setView(input)
                 .setPositiveButton("Save", (d, which) -> {
                     String phoneNumber = input.getText().toString().trim();
+                    SharedPreferences prefs = getSharedPreferences("InventoryPrefs", MODE_PRIVATE);
                     if (!phoneNumber.isEmpty()) {
-                        SharedPreferences prefs = getSharedPreferences("InventoryPrefs", MODE_PRIVATE);
-                        prefs.edit().putString("alert_phone_number", phoneNumber).apply();
+
+                        prefs.edit()
+                                .putString("alert_phone_number", phoneNumber)
+                                .putBoolean("sms_alerts_enabled", true)
+                                .apply();
                         Log.d("SMS", "Phone number saved: " + phoneNumber);
+                    } else {
+                        prefs.edit()
+                                .putBoolean("sms_alerts_enabled", false)
+                                .apply();
                     }
                     goToDashboard();
                 })
