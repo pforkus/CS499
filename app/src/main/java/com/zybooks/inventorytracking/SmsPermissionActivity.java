@@ -2,20 +2,20 @@ package com.zybooks.inventorytracking;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AlertDialog;
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
-import android.content.Context;
+
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -23,7 +23,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.color.MaterialColors;
 
 // Handles SMS permission request and phone number setup for low inventory alerts
-public class SmsPermissionActivity extends AppCompatActivity{
+public class SmsPermissionActivity extends BaseActivity {
     private ActivityResultLauncher<String> mPermissionLauncher;
 
     @Override
@@ -44,7 +44,7 @@ public class SmsPermissionActivity extends AppCompatActivity{
         mPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
-                    if(isGranted) {
+                    if (isGranted) {
                         showPermissionDialog();
                     } else {
                         goToDashboard();

@@ -5,13 +5,13 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
+
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.Objects;
 
-public class DashboardActivity extends AppCompatActivity {
+public class DashboardActivity extends BaseActivity {
 
     private InventoryViewModel mViewModel;
     private InventoryAdapter mAdapter;
@@ -33,6 +33,7 @@ public class DashboardActivity extends AppCompatActivity {
     private SelectionModeController mSelectionModeController;
     private static final int COLUMN_COUNT = 3;
     private boolean mIsGridView = true;
+    private String mLastAppliedTextSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,18 @@ public class DashboardActivity extends AppCompatActivity {
         setupClickListener();
         setupSelectionListener();
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String currentSize = TextSizePrefs.get(this);
+        if (mLastAppliedTextSize == null) {
+            mLastAppliedTextSize = currentSize;
+        } else if (!mLastAppliedTextSize.equals(currentSize)) {
+            mLastAppliedTextSize = currentSize;
+            recreate();
+        }
     }
 
     // Creates click listener for recycler view cells
@@ -73,7 +86,9 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
+    // Sets up SelectionModeController, allows users to multi-select items and batch delete
     private void setupSelectionListener() {
+
         mSelectionModeController = new SelectionModeController(
                 this,
                 mAdapter,
@@ -84,6 +99,7 @@ public class DashboardActivity extends AppCompatActivity {
                     }
                 })
         );
+
         // Exit Action Mode if nothing is selected
         mAdapter.setOnSelectionStateChangedListener(() -> {
             if (mAdapter.selection.isActive()) {
@@ -194,19 +210,21 @@ public class DashboardActivity extends AppCompatActivity {
     // Handles menu selections
     private boolean handleDrawerItemClick(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.nav_settings) {
+        if (id == R.id.nav_settings) { // Starts Settings Activity
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_logout) {
+        } else if (id == R.id.nav_logout) { // Returns to the Login Activity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
-        } else if (id == R.id.nav_exit) {
+        } else if (id == R.id.nav_exit) { // Exits the application
             finishAffinity();
         }
         mDrawLayout.closeDrawer(GravityCompat.END);
         return true;
     }
+
+    // Checks value to toggle between grid and list view
     private void toggleLayoutManager() {
         mIsGridView = !mIsGridView;
         mRecyclerView.setLayoutManager(mIsGridView ? mGridLayoutManager : mLinearLayoutManager);

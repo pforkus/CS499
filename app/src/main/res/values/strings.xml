@@ -29,5 +29,6 @@
     <string name="exit">Exit</string>
     <string name="menu">Menu</string>
     <string name="toggle_layout">toggle_layout</string>
+    <string name="theme">Theme</string>
 
 </resources>

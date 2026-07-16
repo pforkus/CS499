@@ -2,6 +2,7 @@ package com.zybooks.inventorytracking;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.MenuRes;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +20,7 @@ public class SelectionModeController {
     @MenuRes private final int menuRes;
     private final OnActionListener onAction;
     private ActionMode actionMode;
+
     public SelectionModeController(AppCompatActivity activity,
                                    InventoryAdapter adapter,
                                    @MenuRes int menuRes,
@@ -55,6 +57,7 @@ public class SelectionModeController {
             public void onDestroyActionMode(ActionMode mode) {
                 adapter.clearSelection();
                 actionMode = null;
+
             }
         });
     }

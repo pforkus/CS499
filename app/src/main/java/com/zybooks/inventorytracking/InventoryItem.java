@@ -15,12 +15,12 @@ public class InventoryItem {
     @ColumnInfo(name = "name")
     private String mName;
     @ColumnInfo(name = "quantity")
-    private int mQuantity;
+    private long mQuantity;
     @ColumnInfo(name = "image_path")
     private String mImagePath;
 
 
-    public InventoryItem(String name, int quantity, String imagePath){
+    public InventoryItem(String name, long quantity, String imagePath){
         this.mName = name;
         this.mQuantity = quantity;
         this.mImagePath = imagePath;
@@ -34,8 +34,8 @@ public class InventoryItem {
     public String getName() {return mName;}
     public void setName(String name) { mName = name; }
 
-    public int getQuantity() {return mQuantity;}
-    public void setQuantity(int quantity) { mQuantity = quantity; }
+    public long getQuantity() {return mQuantity;}
+    public void setQuantity(long quantity) { mQuantity = quantity; }
 
     public String getImagePath() {return mImagePath;}
     public void setImagePath(String imagePath) { mImagePath = imagePath; }

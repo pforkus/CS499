@@ -35,9 +35,9 @@
 
         <TextView
             android:id="@+id/item_text_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:maxLines="2"
+            android:maxLines="1"
             android:ellipsize="end"
             style="@style/CardLabel"
             app:layout_constraintStart_toStartOf="parent"
@@ -45,7 +45,8 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/item_image_view"
             android:layout_marginBottom="5dp"
-            tools:text="Item Name"/>
+            android:layout_marginTop="3dp"
+            tools:text="Superultramicroscopicsilicovolcaniconiosis"/>
 
         <TextView
             android:id="@+id/item_quantity_label"
@@ -53,20 +54,25 @@
             android:layout_height="wrap_content"
             android:text="@string/qty"
             style="@style/CardLabel"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="1"
+            app:layout_constraintEnd_toStartOf="@id/item_quantity"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginEnd="32dp"
-            android:translationZ="1dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginStart="6dp"
             />
 
         <TextView
             android:id="@+id/item_quantity"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             style="@style/CardLabel"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:maxWidth="60dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            tools:text="999"
+            tools:text="999999999999999999999999999999999999999999999"
             />
 
 

@@ -6,9 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 
 import com.google.android.material.color.MaterialColors;
-import com.zybooks.inventorytracking.DashboardActivity;
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,16 +16,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.content.ContextCompat;
+
 import androidx.appcompat.app.AlertDialog;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
 
 // Handles user login and account creation
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     private EditText mUsernameEdit;
     private EditText mPasswordEdit;

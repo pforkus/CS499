@@ -67,7 +67,7 @@ public class ItemDialogFragment extends DialogFragment {
         if(item != null) {
             args.putLong("item_id", item.getId());
             args.putString("item_name", item.getName());
-            args.putInt("item_quantity", item.getQuantity());
+            args.putLong("item_quantity", item.getQuantity());
             args.putString("item_image_path", item.getImagePath());
         }
         fragment.setArguments(args);
@@ -131,7 +131,7 @@ public class ItemDialogFragment extends DialogFragment {
         if(getArguments() != null && getArguments().containsKey("item_id")) {
             long id = getArguments().getLong("item_id");
             String name = getArguments().getString("item_name");
-            int quantity = getArguments().getInt("item_quantity");
+            long quantity = getArguments().getLong("item_quantity");
             String imagePath = getArguments().getString("item_image_path");
 
             mItem = new InventoryItem(name, quantity, imagePath);
@@ -154,13 +154,13 @@ public class ItemDialogFragment extends DialogFragment {
 
         // Increment button
         mIncrementButton.setOnClickListener(v -> {
-            int currentQty = getQuantity();
+            long currentQty = getQuantity();
             mItemQuantityEdit.setText(String.valueOf(currentQty + 1));
         });
 
         // Decrement button - floor of 0 to prevent negative quantities
         mDecrementButton.setOnClickListener(v -> {
-            int currentQty = getQuantity();
+            long currentQty = getQuantity();
             if(currentQty > 0) {
                 mItemQuantityEdit.setText(String.valueOf(currentQty - 1));
             }
@@ -319,21 +319,21 @@ public class ItemDialogFragment extends DialogFragment {
     }
 
     // Parses quantity from text field, defaults to 0 if empty or invalid
-    private int getQuantity() {
+    private long getQuantity() {
         String qtyStr = mItemQuantityEdit.getText().toString().trim();
         if(qtyStr.isEmpty()) {
             return 0;
         }
         try {
-            return Integer.parseInt(qtyStr);
+            return Long.parseLong(qtyStr);
         } catch (NumberFormatException e) {
-            return 0;
+            return 0; // TODO this isnt handled anywhere, silent failure if quantity exceeds 10 digits
         }
     }
 
     private void saveItem() {
         String name = mItemNameEdit.getText().toString().trim();
-        int quantity = getQuantity();
+        long quantity = getQuantity();
 
         if(name.isEmpty()){
             mItemNameEdit.setError("Name Required");
