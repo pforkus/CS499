@@ -4,7 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -176,12 +180,19 @@ public class DashboardActivity extends BaseActivity {
     private void setupToolbar() {
         setSupportActionBar(findViewById(R.id.toolbar));
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
+
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.dashboard_menu, menu);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        assert searchView != null;
+        View searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_plate);
+        searchPlate.setBackground(ContextCompat.getDrawable(this, R.drawable.search_field_background));
         return true;
     }
 
@@ -201,6 +212,11 @@ public class DashboardActivity extends BaseActivity {
         if(id == R.id.action_toggle_layout) {
             toggleLayoutManager();
             item.setIcon(mIsGridView ? R.drawable.ic_grid_view : R.drawable.ic_list_view);
+            return true;
+        }
+
+        if (id == R.id.action_sort) {
+            new SortBottomSheet().show(getSupportFragmentManager(), "sort_sheet");
             return true;
         }
 

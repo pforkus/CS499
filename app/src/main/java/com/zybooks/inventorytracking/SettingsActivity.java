@@ -18,7 +18,7 @@ import java.util.Objects;
 
 public class SettingsActivity extends BaseActivity {
 
-    private boolean mIsApplyingTheme = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,16 +68,12 @@ public class SettingsActivity extends BaseActivity {
         toggleGroup.check(currentButtonId);
 
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked || mIsApplyingTheme) return;
-
+            if (!isChecked) return;
             String selected = getModeForButtonId(checkedId);
-
-
-            mIsApplyingTheme = true;
             toggleGroup.setEnabled(false);
-
             ThemePrefs.save(this, selected);
             ThemePrefs.applyTheme(selected);
+            recreate();
         });
     }
 

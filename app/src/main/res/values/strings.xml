@@ -28,7 +28,7 @@
     <string name="logout">Logout</string>
     <string name="exit">Exit</string>
     <string name="menu">Menu</string>
-    <string name="toggle_layout">toggle_layout</string>
+    <string name="toggle_layout">Toggle Layout</string>
     <string name="theme">Theme</string>
     <string name="item_category">Item Category</string>
     <string name="item_price">Item Price</string>

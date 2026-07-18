@@ -2,6 +2,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_search"
+        android:title="Search"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="always|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:iconTint="@color/mint_light"
+        />
+
+    <item
+        android:id="@+id/action_sort"
+        android:title="Sort"
+        android:icon="@drawable/ic_sort"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
         android:id="@+id/action_toggle_layout"
         android:icon="@drawable/ic_grid_view"
         android:title="@string/toggle_layout"
@@ -13,7 +29,5 @@
         android:icon="@drawable/ic_menu"
         android:title="@string/menu"
         app:showAsAction="always" />
-
-
 
 </menu>

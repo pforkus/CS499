@@ -17,7 +17,7 @@
         <item name="colorOnBackground">@color/forest_green_dark</item>
 
         <item name="toolbarStyle">@style/CustomToolbarStyle</item>
-
+        <item name="android:actionOverflowButtonStyle">@style/OverflowButtonStyle</item>
     </style>
 
     <style name="DialogBackground">
@@ -29,6 +29,7 @@
     <style name="CustomToolbarStyle" parent="Widget.Material3.Toolbar">
         <item name="android:background">@color/teal_dark</item>
         <item name="titleTextColor">@color/mint_light</item>
+
     </style>
 
 
@@ -37,4 +38,8 @@
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
     <style name="Theme.InventoryTracking" parent="Base.Theme.InventoryTracking" />
+    <style name="OverflowButtonStyle" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="tint">?attr/colorOnPrimary</item>
+    </style>
+
 </resources>

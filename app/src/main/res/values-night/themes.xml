@@ -28,7 +28,7 @@
     <style name="CustomToolbarStyle" parent="Widget.Material3.Toolbar">
         <item name="android:background">@color/teal_dark</item>
         <item name="titleTextColor">@color/mint_light</item>
-
+        <item name="navigationIconTint">?attr/colorOnPrimary</item>
     </style>
 
 
