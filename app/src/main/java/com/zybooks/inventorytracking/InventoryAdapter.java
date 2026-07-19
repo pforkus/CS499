@@ -23,7 +23,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     private OnSelectionStateChangedListener mSelectionStateChangedListener;
 
     // Multiselect state
-    public final SelectionTracker<Long> selection = new SelectionTracker<>();
+    public final SelectionTracker<String> selection = new SelectionTracker<>();
 
     // Interface for handling item cell clicks
     public interface OnItemClickListener {
@@ -121,8 +121,8 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             mQuantityTextView.setText(String.valueOf(item.getQuantity()));
 
             // Display item image if it exists, otherwise uses logo as image
-            if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
-                File imgFile = new File(item.getImagePath());
+            if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
+                File imgFile = new File(item.getImageUrl());
                 if (imgFile.exists()) {
                     Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                     mItemImageView.setImageBitmap(bitmap);

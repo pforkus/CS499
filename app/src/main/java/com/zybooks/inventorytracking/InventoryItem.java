@@ -1,42 +1,63 @@
 package com.zybooks.inventorytracking;
 
-import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
+import com.google.gson.annotations.SerializedName;
 
-// Represents a single inventory item and corresponding room database entity
-@Entity(tableName = "items")
-public class InventoryItem {
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
-    private long mId;
-    @NonNull
-    @ColumnInfo(name = "name")
-    private String mName;
-    @ColumnInfo(name = "quantity")
-    private long mQuantity;
-    @ColumnInfo(name = "image_path")
-    private String mImagePath;
+import java.io.Serializable;
 
+// Represents a single inventory item (network/JSON model, matches Mongo Item schema)
+public class InventoryItem implements Serializable {
 
-    public InventoryItem(String name, long quantity, String imagePath){
-        this.mName = name;
-        this.mQuantity = quantity;
-        this.mImagePath = imagePath;
+    @SerializedName("_id")
+    private String mId;
 
+    private String sku;
+
+    private String name;
+
+    private long quantity;
+
+    private String description;
+
+    private Double price;
+
+    private String imageUrl;
+
+    private String category;
+
+    @SerializedName("createdAt")
+    private String createdAt;
+
+    @SerializedName("updatedAt")
+    private String updatedAt;
+
+    public InventoryItem() {
     }
 
     // Getters and setters
-    public long getId() { return mId; }
-    public void setId(long id) { mId = id; }
+    public String getId() { return mId; }
+    public void setId(String id) { mId = id; }
 
-    public String getName() {return mName;}
-    public void setName(String name) { mName = name; }
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
 
-    public long getQuantity() {return mQuantity;}
-    public void setQuantity(long quantity) { mQuantity = quantity; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getImagePath() {return mImagePath;}
-    public void setImagePath(String imagePath) { mImagePath = imagePath; }
+    public long getQuantity() { return quantity; }
+    public void setQuantity(long quantity) { this.quantity = quantity; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getCreatedAt() { return createdAt; }
+    public String getUpdatedAt() { return updatedAt; }
 }

@@ -22,6 +22,13 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
 
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 // Handles user login and account creation
 public class LoginActivity extends BaseActivity {
 
@@ -45,70 +52,13 @@ public class LoginActivity extends BaseActivity {
         mUsernameEdit = findViewById(R.id.username);
         mPasswordEdit = findViewById(R.id.password);
         mErrorText = findViewById(R.id.login_error);
-        TextView mForgotPassword = findViewById(R.id.forgot_password);
-        Button loginButton = findViewById(R.id.login);
-        Button createButton = findViewById(R.id.create);
-
         mRepository = InventoryRepository.getInstance(getApplicationContext());
 
-        createButton.setOnClickListener(v ->  {
-            String username = mUsernameEdit.getText().toString().trim();
-            String password = mPasswordEdit.getText().toString().trim();
 
-            // Check if fields were left empty
-            if(username.isEmpty() || password.isEmpty()) {
-                showError("Please enter username and password");
-                return;
-            }
-
-            // Check if username already exists
-            mRepository.getUserByUsername(username, existingUser -> {
-                if (existingUser != null) {
-                    // Run UI updates on main thread since callback comes from background thread
-                    runOnUiThread(() -> showError("Account already exists"));
-                } else {
-                    User newUser = new User(username, password);
-                    mRepository.addUser(newUser, createdUser -> {
-                        runOnUiThread(() -> proceedAfterLogin());
-                    });
-                }
-            });
-        });
-
-        loginButton.setOnClickListener(v -> {
-            String username = mUsernameEdit.getText().toString().trim();
-            String password = mPasswordEdit.getText().toString().trim();
-
-            if (username.isEmpty() || password.isEmpty()) {
-                showError("Please enter username and password");
-                return;
-            }
-
-            // Check credentials against database
-            mRepository.getUser(username, password, user -> {
-                if(user != null) {
-                    runOnUiThread(() -> proceedAfterLogin());
-                } else {
-                    // Run UI updates on main thread as callback comes from background threads
-                    runOnUiThread(() -> showError("Invalid username or password"));
-                }
-            });
-        });
-
-        // Show a dialog explaining that password recovery is unavailable
-        mForgotPassword.setOnClickListener(v -> {
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("Forgot Password")
-                    .setMessage("Password recovery is not available. Please create a new account if you cannot remember your credentials.")
-                    .setPositiveButton("OK", null)
-                    .create();
-            dialog.show();
-
-            // Set button colors explicitly for contrast
-            int color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
-        });
+        setupClickListener();
+        setupLoginListener();
+        setupForgotPasswordListener();
+        testServer();
 
     }
 
@@ -132,6 +82,107 @@ public class LoginActivity extends BaseActivity {
     private void showError(String message) {
         mErrorText.setText(message);
         mErrorText.setVisibility(View.VISIBLE);
+    }
+
+    // TODO just for testing local server connection
+    private void testServer() {
+        String search = null;
+        String category = null;
+        String sort = null;
+        String order = null;
+        Integer page = null;
+        Integer limit = null;
+
+        ApiService api = RetrofitClient.getInstance().create(ApiService.class);
+        api.getItems(search, category, sort, order, page, limit).enqueue(new Callback<ItemsResponse>() {
+            @Override
+            public void onResponse(Call<ItemsResponse> call, Response<ItemsResponse> response) {
+                Log.d("ITEMS_TEST", "Response code: " + response.code());
+                if (response.isSuccessful() && response.body() != null) {
+                    List<InventoryItem> items = response.body().getItems();
+                    Log.d("ITEMS_TEST", "Item count: " + items.size());
+                    for (InventoryItem item : items) {
+                        Log.d("ITEMS_TEST", "Item: " + item.toString());
+                    }
+                } else {
+                    Log.e("ITEMS_TEST", "Unsuccessful: " + response.code());
+                    try {
+                        Log.e("ITEMS_TEST", "Error body: " + response.errorBody().string());
+                    } catch (Exception e) { }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ItemsResponse> call, Throwable t) {
+                Log.e("ITEMS_TEST", "Failed: " + t.getMessage(), t);
+            }
+        });
+    }
+    private void setupLoginListener() {
+        Button loginButton = findViewById(R.id.login);
+        loginButton.setOnClickListener(v -> {
+            String username = mUsernameEdit.getText().toString().trim();
+            String password = mPasswordEdit.getText().toString().trim();
+
+            if (username.isEmpty() || password.isEmpty()) {
+                showError("Please enter username and password");
+                return;
+            }
+
+            // Check credentials against database
+            mRepository.getUser(username, password, user -> {
+                if(user != null) {
+                    runOnUiThread(() -> proceedAfterLogin());
+                } else {
+                    // Run UI updates on main thread as callback comes from background threads
+                    runOnUiThread(() -> showError("Invalid username or password"));
+                }
+            });
+        });
+    }
+    private void setupClickListener(){
+        Button createButton = findViewById(R.id.create);
+        createButton.setOnClickListener(v ->  {
+
+            String username = mUsernameEdit.getText().toString().trim();
+            String password = mPasswordEdit.getText().toString().trim();
+
+            // Check if fields were left empty
+            if(username.isEmpty() || password.isEmpty()) {
+                showError("Please enter username and password");
+                return;
+            }
+
+            // Check if username already exists
+            mRepository.getUserByUsername(username, existingUser -> {
+                if (existingUser != null) {
+                    // Run UI updates on main thread since callback comes from background thread
+                    runOnUiThread(() -> showError("Account already exists"));
+                } else {
+                    User newUser = new User(username, password);
+                    mRepository.addUser(newUser, createdUser -> {
+                        runOnUiThread(() -> proceedAfterLogin());
+                    });
+                }
+            });
+        });
+    }
+    private void setupForgotPasswordListener() {
+        TextView forgotPassword = findViewById(R.id.forgot_password);
+        // Show a dialog explaining that password recovery is unavailable
+        forgotPassword.setOnClickListener(v -> {
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("Forgot Password")
+                    .setMessage("Password recovery is not available. Please create a new account if you cannot remember your credentials.")
+                    .setPositiveButton("OK", null)
+                    .create();
+            dialog.show();
+
+            // Set button colors explicitly for contrast
+            int color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondary, Color.BLACK);
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
+        });
     }
 
     // Navigates to SMS permission screen on first login,

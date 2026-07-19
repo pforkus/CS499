@@ -4,7 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
+import androidx.exifinterface.media.ExifInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +33,7 @@ import java.io.InputStream;
 import android.telephony.SmsManager;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
 // Dialog fragment for adding and editing an inventory item
 // Operates in two modes: add mode (item is null) and edit mode (item is populated from args)
@@ -44,6 +45,10 @@ public class ItemDialogFragment extends DialogFragment {
     private Button mIncrementButton;
     private Button mDecrementButton;
     private Button mDeleteButton;
+    private EditText mItemSkuEdit;
+    private EditText mItemPriceEdit;
+    private EditText mItemCategoryEdit;
+    private EditText mItemDetailsEdit;
 
     private InventoryItem mItem;  // Null for add mode, set for edit mode
     private OnDialogResultListener mListener;
@@ -56,19 +61,20 @@ public class ItemDialogFragment extends DialogFragment {
     private ActivityResultLauncher<String> mPermissionLauncher;
 
     public interface OnDialogResultListener {
-        void onItemSaved (InventoryItem item);
-        void onItemDeleted (InventoryItem item);
+        void onItemSaved (InventoryItem item, OnActionCompleteCallback callback);
+        void onItemDeleted (InventoryItem item, OnActionCompleteCallback callback);
     }
 
+    public interface OnActionCompleteCallback {
+        void onComplete(boolean success);
+    }
+    
     // Passes data as args rather than fields to survive fragment recreation
     public static ItemDialogFragment newInstance(InventoryItem item) {
         ItemDialogFragment fragment = new ItemDialogFragment();
         Bundle args = new Bundle();
         if(item != null) {
-            args.putLong("item_id", item.getId());
-            args.putString("item_name", item.getName());
-            args.putLong("item_quantity", item.getQuantity());
-            args.putString("item_image_path", item.getImagePath());
+            args.putSerializable("item", item);
         }
         fragment.setArguments(args);
         return fragment;
@@ -117,38 +123,40 @@ public class ItemDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState){
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_item, null);
+        View view = getLayoutInflater().inflate(R.layout.dialog_item, null);
+
         mItemNameEdit = view.findViewById(R.id.item_text_name);
         mItemQuantityEdit = view.findViewById(R.id.item_quantity);
         mItemImage = view.findViewById(R.id.item_image);
         mIncrementButton = view.findViewById(R.id.increment_button);
         mDecrementButton = view.findViewById(R.id.decrement_button);
         mDeleteButton = view.findViewById(R.id.delete_button);
+        mItemSkuEdit = view.findViewById(R.id.item_sku);
+        mItemPriceEdit = view.findViewById(R.id.item_price);
+        mItemCategoryEdit = view.findViewById(R.id.item_category);
+        mItemDetailsEdit = view.findViewById(R.id.item_details);
         Button confirmButton = view.findViewById(R.id.confirm_button);
         Button exitButton = view.findViewById(R.id.exit_button);
 
         //Load existing data if in edit mode
-        if(getArguments() != null && getArguments().containsKey("item_id")) {
-            long id = getArguments().getLong("item_id");
-            String name = getArguments().getString("item_name");
-            long quantity = getArguments().getLong("item_quantity");
-            String imagePath = getArguments().getString("item_image_path");
+        if (getArguments() != null && getArguments().containsKey("item")) {
+            mItem = (InventoryItem) getArguments().getSerializable("item");
 
-            mItem = new InventoryItem(name, quantity, imagePath);
-            mItem.setId(id);
+            mItemNameEdit.setText(mItem.getName());
+            mItemQuantityEdit.setText(String.valueOf(mItem.getQuantity()));
+            mItemSkuEdit.setText(mItem.getSku());
+            mItemPriceEdit.setText(mItem.getPrice() != null ? String.valueOf(mItem.getPrice()) : "");
+            mItemCategoryEdit.setText(mItem.getCategory());
+            mItemDetailsEdit.setText(mItem.getDescription());
 
-            mItemNameEdit.setText(name);
-            mItemQuantityEdit.setText(String.valueOf(quantity));
-
-            // Load image if exists
-            if (imagePath != null && !imagePath.isEmpty()) {
-                mCurrentImagePath = imagePath;
-                loadImage(imagePath);
+            if (mItem.getImageUrl() != null && !mItem.getImageUrl().isEmpty()) {
+                mCurrentImagePath = mItem.getImageUrl();
+                loadImage(mCurrentImagePath);
             }
 
-            // Show delete only  in edit mode
             mDeleteButton.setVisibility(View.VISIBLE);
         } else {
+            mItem = new InventoryItem();
             mDeleteButton.setVisibility(View.GONE);
         }
 
@@ -188,8 +196,13 @@ public class ItemDialogFragment extends DialogFragment {
                         .setTitle("Delete Item")
                         .setMessage("Are you sure you want to delete this item?")
                         .setPositiveButton("Delete", (dialog, which) -> {
-                            mListener.onItemDeleted(mItem);
-                            dismiss();
+                            mListener.onItemDeleted(mItem, success -> {
+                                if(success) {
+                                    dismiss();
+                                } else {
+                                    Toast.makeText(requireContext(), "Failed to delete item, please try again.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
@@ -333,20 +346,24 @@ public class ItemDialogFragment extends DialogFragment {
 
     private void saveItem() {
         String name = mItemNameEdit.getText().toString().trim();
-        long quantity = getQuantity();
+        long quantity;
 
         if(name.isEmpty()){
             mItemNameEdit.setError("Name Required");
             return;
         }
 
-        // Create a new item in add mode, or update existing fields in edit mode
-        if(mItem == null) { // Add mode
-            mItem = new InventoryItem(name, quantity, mCurrentImagePath);
-        } else { // Edit mode
-            mItem.setName(name);
-            mItem.setQuantity(quantity);
-            mItem.setImagePath(mCurrentImagePath);
+        String quantityText = mItemQuantityEdit.getText().toString().trim();
+        if (quantityText.isEmpty()) {
+            mItemQuantityEdit.setError("Quantity Required");
+            return;
+        }
+
+        try {
+            quantity = Long.parseLong(quantityText);
+        } catch (NumberFormatException e) {
+            mItemQuantityEdit.setError("Invalid quantity");
+            return;
         }
 
         // Trigger SMS alert if item is out of stock
@@ -354,10 +371,31 @@ public class ItemDialogFragment extends DialogFragment {
             sendLowInventoryAlert(name);
         }
 
+        mItem.setName(name);
+        mItem.setQuantity(quantity);
+        mItem.setImageUrl(mCurrentImagePath);
+
+        String sku = mItemSkuEdit.getText().toString().trim();
+        mItem.setSku(sku.isEmpty() ? null : sku);
+
+        String category = mItemCategoryEdit.getText().toString().trim();
+        mItem.setCategory(category.isEmpty() ? null : category);
+
+        String description = mItemDetailsEdit.getText().toString().trim();
+        mItem.setDescription(description.isEmpty() ? null : description);
+
         if (mListener != null) {
-            mListener.onItemSaved(mItem);
+            mListener.onItemSaved(mItem, success -> {
+                if (success) {
+                    dismiss();
+                } else {
+                    Toast.makeText(requireContext(), "Failed to save item, please try again", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            dismiss();
         }
-        dismiss();
+        
     }
 
     private void sendLowInventoryAlert(String itemName) {

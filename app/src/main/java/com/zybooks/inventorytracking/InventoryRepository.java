@@ -3,18 +3,26 @@ package com.zybooks.inventorytracking;
 import android.content.Context;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.room.Room;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 // Singleton repo, manages database operations for app,
 // providing a single access point for user and inventory data
 public class InventoryRepository {
     private static InventoryRepository mInventoryRepo;
     private final UserDao mUserDao;
-    private final InventoryItemDao mInventoryItemDao;
+    private final ApiService mApiService;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     // Returns existing instance or creates one if it does not exist
@@ -27,9 +35,12 @@ public class InventoryRepository {
 
     private InventoryRepository (Context context) {
         InventoryDatabase database = Room.databaseBuilder(context, InventoryDatabase.class, "inventory.db")
+                .fallbackToDestructiveMigration()
                 .build();
         mUserDao = database.userDao();
-        mInventoryItemDao = database.inventoryItemDao();
+        mApiService = RetrofitClient.getInstance().create(ApiService.class);
+
+        //mInventoryItemDao = database.inventoryItemDao();
 
     }
 
@@ -76,30 +87,84 @@ public class InventoryRepository {
     }
 
     // === Inventory item methods ===
-    public void addItem(InventoryItem item) {
-        mExecutor.execute(() -> {
-            long itemId = mInventoryItemDao.addItem(item);
-            item.setId(itemId); // Assigns generated ID back to item obj
+    public interface OnItemsLoadedCallback {
+        void onItemsLoaded(List<InventoryItem> items);
+    }
+
+    public interface OnResultCallback {
+        void onResult(boolean success);
+    }
+
+    public void getAllItems(OnItemsLoadedCallback callback) {
+        mApiService.getItems(null, null, null, null, null, null).enqueue(new Callback<ItemsResponse>() {
+            @Override
+            public void onResponse(Call<ItemsResponse> call, Response<ItemsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onItemsLoaded(response.body().getItems());
+                } else {
+                    callback.onItemsLoaded(Collections.emptyList());
+                }
+            }
+            @Override
+            public void onFailure(Call<ItemsResponse> call, Throwable t) {
+                callback.onItemsLoaded(Collections.emptyList());
+            }
         });
     }
 
-    public LiveData<InventoryItem> getItem(long itemId) {
-        return mInventoryItemDao.getItem(itemId);
+    public void addItem(InventoryItem item, OnResultCallback callback) {
+        mApiService.createItem(item).enqueue(new Callback<InventoryItem>() {
+            @Override
+            public void onResponse(Call<InventoryItem> call, Response<InventoryItem> response) {
+                callback.onResult(response.isSuccessful());
+            }
+            @Override
+            public void onFailure(Call<InventoryItem> call, Throwable t) {
+                callback.onResult(false);
+            }
+        });
     }
 
-    public LiveData<List<InventoryItem>> getAllItems() {
-        return mInventoryItemDao.getAllItems();
+    public void updateItem(InventoryItem item, OnResultCallback callback) {
+        mApiService.updateItem(item.getId(), item).enqueue(new Callback<InventoryItem>() {
+            @Override
+            public void onResponse(Call<InventoryItem> call, Response<InventoryItem> response) {
+                callback.onResult(response.isSuccessful());
+            }
+            @Override
+            public void onFailure(Call<InventoryItem> call, Throwable t) {
+                callback.onResult(false);
+            }
+        });
     }
 
-    public void updateItem(InventoryItem item) {
-        mExecutor.execute(() ->mInventoryItemDao.updateItem(item));
+    public void deleteItem(InventoryItem item, OnResultCallback callback) {
+        mApiService.deleteItem(item.getId()).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                callback.onResult(response.isSuccessful());
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onResult(false);
+            }
+        });
     }
 
-    public void deleteItem(InventoryItem item) {
-        mExecutor.execute(() ->mInventoryItemDao.deleteItem(item));
-    }
-
-    public void deleteItems(List<InventoryItem> items) {
-        mExecutor.execute(() -> mInventoryItemDao.deleteItems(items));
+    public void deleteItems(List<InventoryItem> items, OnResultCallback callback) {
+        List<String> ids = new ArrayList<>();
+        for (InventoryItem item : items) {
+            ids.add(item.getId());
+        }
+        mApiService.deleteItems(new DeleteRequest(ids)).enqueue(new Callback<DeleteResponse>() {
+            @Override
+            public void onResponse(Call<DeleteResponse> call, Response<DeleteResponse> response) {
+                callback.onResult(response.isSuccessful());
+            }
+            @Override
+            public void onFailure(Call<DeleteResponse> call, Throwable t) {
+                callback.onResult(false);
+            }
+        });
     }
 }

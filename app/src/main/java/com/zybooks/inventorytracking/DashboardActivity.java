@@ -7,7 +7,6 @@ import android.view.MenuItem;
 import android.view.View;
 
 import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
@@ -77,13 +76,14 @@ public class DashboardActivity extends BaseActivity {
             // Listen for results from dialog - save/delete actions
             dialog.setOnDialogResultListener(new ItemDialogFragment.OnDialogResultListener() {
                 @Override
-                public void onItemSaved(InventoryItem item) {
-                    mViewModel.updateItem(item);
+                public void onItemSaved(InventoryItem item, ItemDialogFragment.OnActionCompleteCallback callback) {
+
+                    mViewModel.updateItem(item, callback::onComplete);
                 }
 
                 @Override
-                public void onItemDeleted(InventoryItem item) {
-                    mViewModel.deleteItem(item);
+                public void onItemDeleted(InventoryItem item, ItemDialogFragment.OnActionCompleteCallback callback) {
+                    mViewModel.deleteItem(item, callback::onComplete);
                 }
             });
             dialog.show(getSupportFragmentManager(), "ItemDialog");
@@ -134,12 +134,13 @@ public class DashboardActivity extends BaseActivity {
             // Listen for results from dialog
             dialog.setOnDialogResultListener(new ItemDialogFragment.OnDialogResultListener() {
                 @Override
-                public void onItemSaved(InventoryItem savedItem) {
-                    mViewModel.addItem(savedItem);
+                public void onItemSaved(InventoryItem savedItem, ItemDialogFragment.OnActionCompleteCallback callback) {
+                    mViewModel.addItem(savedItem, callback::onComplete);
                 }
 
                 @Override
-                public void onItemDeleted(InventoryItem deletedItem) {
+                public void onItemDeleted(InventoryItem deletedItem, ItemDialogFragment.OnActionCompleteCallback callback) {
+                    // N.A
 
                 }
             });
