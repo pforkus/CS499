@@ -10,9 +10,12 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void attachBaseContext(Context newBase) {
+
+        // Sets the font size(scale) based on saved user configuration
         float scale = TextSizePrefs.getScaleFactor(newBase);
         Configuration config = new Configuration(newBase.getResources().getConfiguration());
         config.fontScale = scale;
+
         Context context = newBase.createConfigurationContext(config);
         super.attachBaseContext(context);
     }

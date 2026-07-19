@@ -25,7 +25,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     // Multiselect state
     public final SelectionTracker<String> selection = new SelectionTracker<>();
 
-    // Interface for handling item cell clicks
+    // Interface for handling individual item cell clicks
     public interface OnItemClickListener {
         void onItemClick(InventoryItem item);
     }
@@ -58,6 +58,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
         holder.bind(item);
     }
 
+    // Returns the size of the items array
     @Override
     public int getItemCount() {
         return mItems.size();
@@ -66,7 +67,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     // Updates the adapter data and refreshes recyclerview
     public void setItems(List<InventoryItem> items) {
         mItems = items;
-        notifyDataSetChanged();
+        notifyDataSetChanged(); // FIXME seek more efficient alternatives
     }
 
     // ==========
@@ -85,23 +86,28 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
      }
 
      private void toggleSelection(InventoryItem item, int position) {
+
         selection.toggle(item.getId());
+
+        // Rebinds item so selected items are shown as such
         notifyItemChanged(position);
 
         if(mSelectionStateChangedListener != null) {
             mSelectionStateChangedListener.onSelectionChanged();
         }
+
+        // When selection mode ends, rebind all rows
         if(!selection.isActive()) {
-            notifyDataSetChanged();
+            notifyDataSetChanged(); // FIXME seek more efficient alternatives
         }
      }
 
      public void clearSelection() {
         selection.clear();
-        notifyDataSetChanged();
+        notifyDataSetChanged(); // FIXME seek more efficient alternatives (i.e: DiffUtil, NotifyItemRangedChanged)
      }
 
-     class ItemViewHolder extends RecyclerView.ViewHolder {
+     public class ItemViewHolder extends RecyclerView.ViewHolder {
         private final TextView mNameTextView;
         private final TextView mQuantityTextView;
         private final ImageView mItemImageView;
@@ -115,11 +121,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             mItemImageView = itemView.findViewById(R.id.item_image_view);
         }
 
-        // Bind inventoryitem data to viewholder view
+        // Bind inventory item data to view holder view
         public void bind(InventoryItem item) {
             mNameTextView.setText(item.getName());
             mQuantityTextView.setText(String.valueOf(item.getQuantity()));
 
+            // FIXME With new database, this is still saving locally, need Glide or equivalent to store externally, so other mobile apps can retrieve images
             // Display item image if it exists, otherwise uses logo as image
             if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
                 File imgFile = new File(item.getImageUrl());
@@ -133,7 +140,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
                 mItemImageView.setImageResource(R.drawable.vector_logo);
             }
 
-            // Multi Select UI state
+            // Tracks Multi-select UI state
             boolean isSelected = selection.isSelected(item.getId());
             itemView.setActivated(isSelected);
 
@@ -152,7 +159,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
                 }
             });
 
-            //Long-press: enter selection mode
+            // Long-press: enter selection mode
             itemView.setOnLongClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if(position == RecyclerView.NO_POSITION) return false;

@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import java.util.List;
-
+//TODO To be removed
 // Data access object  for performing CRUD operations on users table
 @Dao
 public interface UserDao {

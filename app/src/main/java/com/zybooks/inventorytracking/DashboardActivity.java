@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -16,6 +15,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
@@ -23,7 +24,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
 import java.util.Objects;
+
+
 
 public class DashboardActivity extends BaseActivity {
 
@@ -34,7 +38,9 @@ public class DashboardActivity extends BaseActivity {
     private RecyclerView mRecyclerView;
     private DrawerLayout mDrawLayout;
     private SelectionModeController mSelectionModeController;
+    private ChipGroup categoryChipGroup;
     private static final int COLUMN_COUNT = 3;
+
     private boolean mIsGridView = true;
     private String mLastAppliedTextSize;
 
@@ -42,6 +48,8 @@ public class DashboardActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+
+        categoryChipGroup = findViewById(R.id.categoryChipGroup);
 
         setupToolbar();
         setupDrawer();
@@ -57,6 +65,9 @@ public class DashboardActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Checks if the font size matches last applied size,
+        // if different, rerenders activity to push changes
         String currentSize = TextSizePrefs.get(this);
         if (mLastAppliedTextSize == null) {
             mLastAppliedTextSize = currentSize;
@@ -121,6 +132,7 @@ public class DashboardActivity extends BaseActivity {
 
         // Observe the item list and update adapter when data changes
         mViewModel.getAllItems().observe(this, items -> mAdapter.setItems(items));
+        mViewModel.getCategories().observe(this, this::populateCategoryChips);
     }
 
     private void setupFab() {
@@ -184,6 +196,22 @@ public class DashboardActivity extends BaseActivity {
 
     }
 
+    private void populateCategoryChips(List<String> categories) {
+        categoryChipGroup.removeAllViews();
+
+        for(String category: categories) {
+            Chip chip = new Chip(this);
+            chip.setText(category);
+            chip.setCheckable(true);
+            chip.setClickable(true);
+
+            chip.setOnCheckedChangeListener((buttonView, isChecked) ->
+                    mViewModel.toggleCategory(category, isChecked));
+            categoryChipGroup.addView(chip);
+        }
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -216,6 +244,7 @@ public class DashboardActivity extends BaseActivity {
             return true;
         }
 
+        // Opens sort bottom sheet
         if (id == R.id.action_sort) {
             new SortBottomSheet().show(getSupportFragmentManager(), "sort_sheet");
             return true;

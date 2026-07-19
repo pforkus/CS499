@@ -5,20 +5,29 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class InventoryViewModel extends AndroidViewModel {
     private final InventoryRepository mRepository;
     private final MutableLiveData<List<InventoryItem>> mAllItems = new MutableLiveData<>();
-
+    private final MutableLiveData<List<String>> mCategories = new MutableLiveData<>();
+    private final Set<String> mSelectedCategories = new HashSet<>();
     public InventoryViewModel(@NonNull Application application) {
         super(application);
         mRepository = InventoryRepository.getInstance(application.getApplicationContext());
         refreshItems();
+        loadCategories();
     }
 
     public LiveData<List<InventoryItem>> getAllItems() {
         return mAllItems;
+    }
+
+    public LiveData<List<String>> getCategories() {
+        return mCategories;
     }
 
     public void addItem(InventoryItem item, InventoryRepository.OnResultCallback externalCallback) {
@@ -62,7 +71,26 @@ public class InventoryViewModel extends AndroidViewModel {
         });
     }
 
+    private void loadCategories() {
+        mRepository.getCategories(categories -> mCategories.postValue(categories));
+    }
+
+
+    public void toggleCategory(String category, boolean isSelected) {
+        if(isSelected){
+            mSelectedCategories.add(category);
+        } else {
+            mSelectedCategories.remove(category);
+        }
+        refreshItems();
+    }
+
     private void refreshItems() {
-        mRepository.getAllItems(items -> mAllItems.postValue(items));
+        String categoryParam = mSelectedCategories.isEmpty()
+                ? null
+                : String.join(",", mSelectedCategories);
+
+        mRepository.getItems(null, categoryParam, null, null, null, null,
+                items -> mAllItems.postValue(items));
     }
 }

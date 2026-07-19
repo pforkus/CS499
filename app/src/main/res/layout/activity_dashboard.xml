@@ -40,23 +40,6 @@
                 app:singleSelection="false"
                 app:chipSpacingHorizontal="8dp">
 
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Electronics"
-                    android:checkable="true" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Books"
-                    android:checkable="true" />
-
-                <com.google.android.material.chip.Chip
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Clothing"
-                    android:checkable="true" />
 
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>

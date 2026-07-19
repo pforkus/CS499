@@ -22,7 +22,7 @@ public class User {
     private String mPassword;
 
     //Constructor
-    public User(String username, String password){
+    public User(@NonNull String username, @NonNull String password){
         mUsername = username;
         mPassword = password;
     }

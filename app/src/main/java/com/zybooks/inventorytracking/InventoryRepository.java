@@ -3,11 +3,9 @@ package com.zybooks.inventorytracking;
 import android.content.Context;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.room.Room;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -62,7 +60,6 @@ public class InventoryRepository {
         void onUserFetched(User user);
     }
 
-
     public void getUser (String username, String password, OnUserFetchedCallback callback) {
         mExecutor.execute(() -> {
             User user = mUserDao.getUser(username, password);
@@ -86,7 +83,9 @@ public class InventoryRepository {
         return mUserDao.getAllUsers();
     }
 
-    // === Inventory item methods ===
+    // ** === Inventory item methods === ** //
+    // ** ===                        === ** //
+
     public interface OnItemsLoadedCallback {
         void onItemsLoaded(List<InventoryItem> items);
     }
@@ -95,8 +94,12 @@ public class InventoryRepository {
         void onResult(boolean success);
     }
 
-    public void getAllItems(OnItemsLoadedCallback callback) {
-        mApiService.getItems(null, null, null, null, null, null).enqueue(new Callback<ItemsResponse>() {
+    public interface OnCategoriesLoadedCallback {
+        void onCategoriesLoaded(List<String> categories);
+    }
+
+    public void getItems(String search, String category, String sort, String order, Integer page, Integer limit, OnItemsLoadedCallback callback) {
+        mApiService.getItems(search, category, sort, order, page, limit).enqueue(new Callback<ItemsResponse>() {
             @Override
             public void onResponse(Call<ItemsResponse> call, Response<ItemsResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -164,6 +167,23 @@ public class InventoryRepository {
             @Override
             public void onFailure(Call<DeleteResponse> call, Throwable t) {
                 callback.onResult(false);
+            }
+        });
+    }
+
+    public void getCategories(OnCategoriesLoadedCallback callback) {
+        mApiService.getCategories().enqueue(new Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onCategoriesLoaded(response.body());
+                } else {
+                    callback.onCategoriesLoaded(Collections.emptyList());
+                }
+            }
+            @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+                callback.onCategoriesLoaded(Collections.emptyList());
             }
         });
     }

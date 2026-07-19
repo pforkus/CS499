@@ -53,13 +53,9 @@ public class SmsPermissionActivity extends BaseActivity {
                 }
         );
 
-        grantButton.setOnClickListener(v -> {
-            mPermissionLauncher.launch(Manifest.permission.SEND_SMS);
-        });
+        grantButton.setOnClickListener(v -> mPermissionLauncher.launch(Manifest.permission.SEND_SMS));
 
-        declineButton.setOnClickListener(v -> {
-            goToDashboard();
-        });
+        declineButton.setOnClickListener(v -> goToDashboard());
     }
 
     // Prompts the user to enter a phone number and saves it to shared preferences for SMS alerts

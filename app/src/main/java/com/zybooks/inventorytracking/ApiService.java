@@ -12,7 +12,9 @@ import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
+// Interface replacing DAOs, handles data layer requests with Retrofit HTTP methods
 public interface ApiService {
+
     // GET items with optional search/filter/sort/pagination
     @GET("api/items")
     Call<ItemsResponse> getItems(
@@ -35,6 +37,7 @@ public interface ApiService {
     // GET single item
     @GET("api/items/{id}")
     Call<InventoryItem> getItem(@Path("id") String id);
+
 
     // DELETE a single item
     @DELETE("api/items/{id}")
