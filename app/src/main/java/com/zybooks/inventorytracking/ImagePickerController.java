@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -17,10 +18,10 @@ import java.io.File;
 public class ImagePickerController {
 
     public interface OnImageReadyListener {
-        void onImageReady(String imagePath);
+        void onImagePreviewReady(Uri localUri);
     }
 
-    private final Fragment mFragment; // gives us requireContext(), getFilesDir(), etc.
+    private final Fragment mFragment;
     private final OnImageReadyListener mListener;
 
     private ActivityResultLauncher<Uri> mCameraLauncher;
@@ -28,7 +29,7 @@ public class ImagePickerController {
     private ActivityResultLauncher<String> mPermissionLauncher;
     private Uri mCameraImageUri;
 
-    // Must be constructed in onCreate(), before STARTED
+
     public ImagePickerController(Fragment fragment, OnImageReadyListener listener) {
         mFragment = fragment;
         mListener = listener;
@@ -90,11 +91,7 @@ public class ImagePickerController {
     }
 
     private void handleImageUri(Uri uri) {
-        Context context = mFragment.requireContext();
-        String path = ImageStorageHelper.saveImageFromUri(
-                uri, context.getContentResolver(), context.getFilesDir());
-        if (path != null) {
-            mListener.onImageReady(path);
-        }
+        mListener.onImagePreviewReady(uri);
+        Log.d("ImageFlow", "handleImageUri called with: " + uri);
     }
 }

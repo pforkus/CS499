@@ -17,6 +17,7 @@ public class BaseActivity extends AppCompatActivity {
         config.fontScale = scale;
 
         Context context = newBase.createConfigurationContext(config);
+        ThemePrefs.applyTheme(ThemePrefs.get(context));
         super.attachBaseContext(context);
     }
     @Override

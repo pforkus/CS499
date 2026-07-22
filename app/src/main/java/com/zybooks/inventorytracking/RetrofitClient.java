@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
     private static Retrofit retrofit;
-    private static final String BASE_URL = "http://10.0.2.2:3000/"; //TODO Only works local for emulator
+    private static final String BASE_URL = "https://cs499-1.onrender.com"; // Connects to Render
 
     public static Retrofit getInstance() {
         if(retrofit == null) {

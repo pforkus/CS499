@@ -1,7 +1,6 @@
 package com.zybooks.inventorytracking;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,8 +9,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -74,7 +71,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     // Multi - Select
     // ==========
 
-    // Returns the  currently selected items for the host to act on
+    // Adds currently selected items' ids to a list and returns them for host actions
     public List<InventoryItem> getSelectedItems() {
         List<InventoryItem> result = new ArrayList<>();
         for (InventoryItem item: mItems) {
@@ -126,16 +123,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             mNameTextView.setText(item.getName());
             mQuantityTextView.setText(String.valueOf(item.getQuantity()));
 
-            // FIXME With new database, this is still saving locally, need Glide or equivalent to store externally, so other mobile apps can retrieve images
             // Display item image if it exists, otherwise uses logo as image
             if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
-                File imgFile = new File(item.getImageUrl());
-                if (imgFile.exists()) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                    mItemImageView.setImageBitmap(bitmap);
-                } else {
-                    mItemImageView.setImageResource(R.drawable.vector_logo);
-                }
+                ImageStorageHelper.loadImage(item.getImageUrl(), mItemImageView);
             } else {
                 mItemImageView.setImageResource(R.drawable.vector_logo);
             }
@@ -146,7 +136,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
 
 
 
-            // Tap: toggle selection if in selection ode, otherwise opens item dialog
+            // Tap: toggle selection if in selection mode, otherwise opens item dialog
             itemView.setOnClickListener(v ->{
                 int position = getBindingAdapterPosition();
                 if(position == RecyclerView.NO_POSITION) return;

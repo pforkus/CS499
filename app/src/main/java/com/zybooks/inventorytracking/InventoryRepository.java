@@ -1,9 +1,7 @@
 package com.zybooks.inventorytracking;
 
 import android.content.Context;
-
-import androidx.lifecycle.LiveData;
-import androidx.room.Room;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +17,6 @@ import retrofit2.Response;
 // providing a single access point for user and inventory data
 public class InventoryRepository {
     private static InventoryRepository mInventoryRepo;
-    private final UserDao mUserDao;
     private final ApiService mApiService;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
@@ -32,26 +29,12 @@ public class InventoryRepository {
     }
 
     private InventoryRepository (Context context) {
-        InventoryDatabase database = Room.databaseBuilder(context, InventoryDatabase.class, "inventory.db")
-                .fallbackToDestructiveMigration()
-                .build();
-        mUserDao = database.userDao();
         mApiService = RetrofitClient.getInstance().create(ApiService.class);
 
-        //mInventoryItemDao = database.inventoryItemDao();
 
     }
 
-    // === User methods ===
-    public void addUser(User user, OnUserAddedCallback callback) {
-        mExecutor.execute(() -> {
-            long userId = mUserDao.addUser(user);
-            user.setId(userId); // Assigns generated ID back to user obj
-            if (callback != null) {
-                callback.onUserAdded(user);
-            }
-        });
-    }
+    // === User methods === // FIXME separate into own repository
 
     public interface OnUserAddedCallback {
         void onUserAdded(User user);
@@ -60,28 +43,52 @@ public class InventoryRepository {
         void onUserFetched(User user);
     }
 
-    public void getUser (String username, String password, OnUserFetchedCallback callback) {
-        mExecutor.execute(() -> {
-            User user = mUserDao.getUser(username, password);
-            if (callback != null) {
-                callback.onUserFetched(user);
+    public interface OnUserCallback {
+        void onResult(User user);
+    }
+    public void createUser(String username, String password, OnUserCallback callback) {
+        UserRequest request = new UserRequest(username, password);
+
+        mApiService.createUser(request).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                Log.d("USER_API", "Response code: " + response.code());
+                if(response.isSuccessful()) {
+                    callback.onResult(response.body());
+                } else {
+                    callback.onResult(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Log.e("USER_API", "Failed", t);
+                callback.onResult(null);
+            }
+        });
+    }
+
+    public void login (String username, String password, OnUserCallback callback) {
+        UserRequest request = new UserRequest(username, password);
+
+        mApiService.login(request).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if(response.isSuccessful()) {
+                    callback.onResult(response.body());
+                } else {
+                    callback.onResult(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                    callback.onResult(null);
             }
         });
 
     }
 
-    public void getUserByUsername(String username, OnUserFetchedCallback callback) {
-        mExecutor.execute(() ->{
-            User user = mUserDao.getUserByUsername(username);
-            if (callback != null) {
-                callback.onUserFetched(user);
-            }
-        });
-    }
-
-    public LiveData<List<User>> getAllUsers() {
-        return mUserDao.getAllUsers();
-    }
 
     // ** === Inventory item methods === ** //
     // ** ===                        === ** //

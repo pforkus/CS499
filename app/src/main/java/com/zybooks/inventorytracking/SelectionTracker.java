@@ -7,6 +7,7 @@ public class SelectionTracker<T> {
     private final Set<T> selectedIds = new HashSet<>();
     private boolean active = false;
 
+    // Toggles selected item, storing id in set if selected
     public boolean toggle(T id) {
         if(selectedIds.contains(id)) {
             selectedIds.remove(id);
@@ -17,6 +18,7 @@ public class SelectionTracker<T> {
         return selectedIds.contains(id);
     }
 
+    // Bool tracks items that are selected by id
     public boolean isSelected(T id) {
         return selectedIds.contains(id);
     }

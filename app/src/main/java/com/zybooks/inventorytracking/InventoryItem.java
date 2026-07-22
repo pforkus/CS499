@@ -24,6 +24,8 @@ public class InventoryItem implements Serializable {
 
     private String category;
 
+    private String imagePublicId;
+
     @SerializedName("createdAt")
     private String createdAt;
 
@@ -54,6 +56,9 @@ public class InventoryItem implements Serializable {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getImagePublicId() { return imagePublicId; }
+    public void setImagePublicId(String imagePublicId) { this.imagePublicId = imagePublicId; }
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }

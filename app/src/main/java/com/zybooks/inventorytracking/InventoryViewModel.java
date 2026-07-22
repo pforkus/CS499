@@ -1,6 +1,8 @@
 package com.zybooks.inventorytracking;
 
 import android.app.Application;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -15,6 +17,7 @@ public class InventoryViewModel extends AndroidViewModel {
     private final MutableLiveData<List<InventoryItem>> mAllItems = new MutableLiveData<>();
     private final MutableLiveData<List<String>> mCategories = new MutableLiveData<>();
     private final Set<String> mSelectedCategories = new HashSet<>();
+
     public InventoryViewModel(@NonNull Application application) {
         super(application);
         mRepository = InventoryRepository.getInstance(application.getApplicationContext());
@@ -33,7 +36,7 @@ public class InventoryViewModel extends AndroidViewModel {
     public void addItem(InventoryItem item, InventoryRepository.OnResultCallback externalCallback) {
         mRepository.addItem(item, success -> {
             if (success) {
-                refreshItems();
+                refreshItems(); // To show changed data
             }
             if (externalCallback != null) {
                 externalCallback.onResult(success);
@@ -72,7 +75,7 @@ public class InventoryViewModel extends AndroidViewModel {
     }
 
     private void loadCategories() {
-        mRepository.getCategories(categories -> mCategories.postValue(categories));
+        mRepository.getCategories(mCategories::postValue);
     }
 
 
@@ -85,12 +88,26 @@ public class InventoryViewModel extends AndroidViewModel {
         refreshItems();
     }
 
+    public void search(String query) {
+        mRepository.getItems(query, null, null, null, null, null,
+                mAllItems::postValue);
+    }
+
+    public void clearSearch() {
+        refreshItems();
+    }
+
+    public void sort(String sortField, String sortOrder) {
+        mRepository.getItems(null, null, sortField, sortOrder, null, null,
+                mAllItems::postValue);
+    }
+    // Clear parameters besides set categories, retains previous category selection
     private void refreshItems() {
         String categoryParam = mSelectedCategories.isEmpty()
                 ? null
                 : String.join(",", mSelectedCategories);
 
         mRepository.getItems(null, categoryParam, null, null, null, null,
-                items -> mAllItems.postValue(items));
+                mAllItems::postValue);
     }
 }

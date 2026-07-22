@@ -2,9 +2,12 @@ package com.zybooks.inventorytracking;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -131,7 +134,9 @@ public class DashboardActivity extends BaseActivity {
         mViewModel = new ViewModelProvider(this).get(InventoryViewModel.class);
 
         // Observe the item list and update adapter when data changes
-        mViewModel.getAllItems().observe(this, items -> mAdapter.setItems(items));
+        mViewModel.getAllItems().observe(this, items -> {
+            mAdapter.setItems(items);
+        });
         mViewModel.getCategories().observe(this, this::populateCategoryChips);
     }
 
@@ -216,12 +221,8 @@ public class DashboardActivity extends BaseActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.dashboard_menu, menu);
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        setupSearch(menu);
 
-        assert searchView != null;
-        View searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_plate);
-        searchPlate.setBackground(ContextCompat.getDrawable(this, R.drawable.search_field_background));
         return true;
     }
 
@@ -250,6 +251,7 @@ public class DashboardActivity extends BaseActivity {
             return true;
         }
 
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -268,6 +270,50 @@ public class DashboardActivity extends BaseActivity {
         }
         mDrawLayout.closeDrawer(GravityCompat.END);
         return true;
+    }
+
+    // Handles search and clearing search
+    private void setupSearch(Menu menu) {
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+
+        View searchPlate = Objects.requireNonNull(searchView)
+                .findViewById(androidx.appcompat.R.id.search_plate);
+        searchPlate.setBackground(
+                ContextCompat.getDrawable(this, R.drawable.search_field_background));
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if(newText.isEmpty()) {
+                    mViewModel.clearSearch();
+                }
+                return true; // FIXME wire trie hookup here
+            }
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                mViewModel.search(query);
+                return true;
+            }
+        });
+
+        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
+                searchView.setQuery("", false);
+                mViewModel.clearSearch();
+                return true;
+
+            }
+
+            @Override
+            public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
+                return true;
+            }
+        });
     }
 
     // Checks value to toggle between grid and list view

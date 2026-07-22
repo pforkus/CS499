@@ -1,39 +1,21 @@
 package com.zybooks.inventorytracking;
 
-import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
+import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
 
-// Represents a user account and its corresponding room database entity
-@Entity(tableName = "users")
-public class User {
+// Represents a user account
 
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
-    private long mId;
+public class User implements Serializable {
 
-    @NonNull
-    @ColumnInfo(name = "username")
+    @SerializedName("_id")
+    private String mId;
     private String mUsername;
 
-    @NonNull
-    @ColumnInfo(name = "password")
-    private String mPassword;
-
-    //Constructor
-    public User(@NonNull String username, @NonNull String password){
-        mUsername = username;
-        mPassword = password;
+    public String getmUsername() {
+        return mUsername;
     }
 
-    //Getters and Setters
-    public long getId() { return mId; }
-    public void setId(long id) { mId = id; }
-
-    public String getUsername() { return mUsername; }
-    public void setUsername(String username) { mUsername = username; }
-
-    public String getPassword() { return mPassword; }
-    public void setPassword(String password) { mPassword = password; }
+    public String getmId() {
+        return mId;
+    }
 }

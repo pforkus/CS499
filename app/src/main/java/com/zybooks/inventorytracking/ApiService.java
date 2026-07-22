@@ -50,4 +50,13 @@ public interface ApiService {
     // POST delete many
     @POST("api/items/delete-many")
     Call<DeleteResponse> deleteItems(@Body DeleteRequest request);
+
+    // =============================== //
+    // ======= User Methods ========== //
+
+    @POST("api/users")
+    Call<User> createUser(@Body UserRequest request);
+
+    @POST("api/users/login")
+    Call<User> login(@Body UserRequest request);
 }

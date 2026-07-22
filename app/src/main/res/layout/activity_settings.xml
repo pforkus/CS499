@@ -3,7 +3,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     android:id="@+id/settings_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -29,8 +28,7 @@
         android:layout_marginTop="20dp"
         app:layout_constraintEnd_toEndOf="@id/themeToggleGroup"
         app:layout_constraintTop_toBottomOf="@id/settings_toolbar"
-
-        android:text="SMS Alerts"
+        android:text="@string/sms_alerts"
         />
 
 
@@ -48,7 +46,7 @@
 
     <TextView
         android:id="@+id/settings_option_text_size"
-        android:text="Font Size"
+        android:text="@string/font_size"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -75,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Light"
+            android:text="@string/light"
             style="?attr/materialButtonOutlinedStyle"
             />
 
@@ -84,7 +82,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Dark"
+            android:text="@string/dark"
             style="?attr/materialButtonOutlinedStyle"
             />
 
@@ -93,7 +91,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="System"
+            android:text="@string/system"
             style="?attr/materialButtonOutlinedStyle"
             />
 
@@ -118,7 +116,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Small"
+            android:text="@string/small"
             style="?attr/materialButtonOutlinedStyle"
             />
 
@@ -127,7 +125,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Medium"
+            android:text="@string/medium"
             style="?attr/materialButtonOutlinedStyle"
             />
 
@@ -136,7 +134,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Large"
+            android:text="@string/large"
             style="?attr/materialButtonOutlinedStyle"
             />
 
@@ -151,7 +149,7 @@
         app:layout_constraintStart_toStartOf="@id/textSizeToggleGroup"
         app:layout_constraintTop_toBottomOf="@id/textSizeToggleGroup"
 
-        android:text="Sms Permissions"
+        android:text="@string/sms_permissions"
         />
 
     <Button
@@ -161,7 +159,7 @@
         android:layout_marginTop="25dp"
         app:layout_constraintEnd_toEndOf="@id/textSizeToggleGroup"
         app:layout_constraintTop_toBottomOf="@id/textSizeToggleGroup"
-        android:text="SMS Permissions"
+        android:text="@string/sms_permissions"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

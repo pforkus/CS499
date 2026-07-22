@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sort by"
+        android:text="@string/sort_by"
         android:textStyle="bold"
         android:textSize="16sp"
         android:layout_marginBottom="8dp" />
@@ -22,19 +22,26 @@
             android:id="@+id/sort_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Name" />
+            android:text="@string/name"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/sort_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/category_field" />
 
         <RadioButton
             android:id="@+id/sort_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Date added" />
+            android:text="@string/date_added" />
 
         <RadioButton
             android:id="@+id/sort_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Price" />
+            android:text="@string/price_field" />
 
     </RadioGroup>
 
@@ -55,7 +62,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Ascending"
+            android:text="@string/ascending"
             android:checked="true" />
 
         <RadioButton
@@ -63,7 +70,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Descending" />
+            android:text="@string/descending" />
 
     </RadioGroup>
 
@@ -72,6 +79,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Apply" />
+        android:text="@string/apply" />
 
 </LinearLayout>

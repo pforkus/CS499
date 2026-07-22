@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -35,10 +36,14 @@ public class ItemDialogFragment extends DialogFragment {
     private EditText mItemPriceEdit;
     private EditText mItemCategoryEdit;
     private EditText mItemDetailsEdit;
+    private Button mConfirmButton;
+    private Button mExitButton;
+    private Uri mLocalImageUri;
+    private String mCurrentImageUrl;
 
     private InventoryItem mItem;  // Null for add mode, set for edit mode
     private OnDialogResultListener mListener;
-    private String mCurrentImagePath;
+
 
     private ImagePickerController mImagePicker;
 
@@ -70,9 +75,14 @@ public class ItemDialogFragment extends DialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mImagePicker = new ImagePickerController(this, path -> {
-            mCurrentImagePath = path;
-            ImageStorageHelper.loadImage(path, mItemImage);
+        mImagePicker = new ImagePickerController(this, new ImagePickerController.OnImageReadyListener() {
+            @Override
+            public void onImagePreviewReady(Uri localUri) {
+                Log.d("ImageFlow", "onImagePreviewReady called with: " + localUri);
+                mLocalImageUri = localUri;
+                ImageStorageHelper.loadImage(localUri, mItemImage);
+                Log.d("ImageFlow", "loadImage called, mItemImage = " + mItemImage);
+            }
         });
     }
 
@@ -90,8 +100,9 @@ public class ItemDialogFragment extends DialogFragment {
         mItemPriceEdit = view.findViewById(R.id.item_price);
         mItemCategoryEdit = view.findViewById(R.id.item_category);
         mItemDetailsEdit = view.findViewById(R.id.item_details);
-        Button confirmButton = view.findViewById(R.id.confirm_button);
-        Button exitButton = view.findViewById(R.id.exit_button);
+        mConfirmButton = view.findViewById(R.id.confirm_button);
+        mExitButton = view.findViewById(R.id.exit_button);
+
         Button incrementButton = view.findViewById(R.id.increment_button);
         Button decrementButton = view.findViewById(R.id.decrement_button);
         Button deleteButton = view.findViewById(R.id.delete_button);
@@ -104,30 +115,29 @@ public class ItemDialogFragment extends DialogFragment {
             mItemNameEdit.setText(Objects.requireNonNull(mItem).getName());
             mItemQuantityEdit.setText(String.valueOf(mItem.getQuantity()));
             mItemSkuEdit.setText(mItem.getSku());
-            mItemPriceEdit.setText(mItem.getPrice() != null ? String.valueOf(mItem.getPrice()) : "");
+            mItemPriceEdit.setText(String.valueOf(mItem.getPrice()));
             mItemCategoryEdit.setText(mItem.getCategory());
             mItemDetailsEdit.setText(mItem.getDescription());
 
             if (mItem.getImageUrl() != null && !mItem.getImageUrl().isEmpty()) {
-                mCurrentImagePath = mItem.getImageUrl();
-                ImageStorageHelper.loadImage(mCurrentImagePath, mItemImage);
+                mCurrentImageUrl = mItem.getImageUrl();
+                ImageStorageHelper.loadImage(mCurrentImageUrl, mItemImage);
             }
 
             // Shows delete button in edit mode
             deleteButton.setVisibility(View.VISIBLE);
-        } else {
-            // Load an empty dialog for adding new items
+        } else { // In Add mode, we do not need to populate the fields or display a delete button
             mItem = new InventoryItem();
-            deleteButton.setVisibility(View.GONE); // Hides delete button in add mode
+            deleteButton.setVisibility(View.INVISIBLE);
         }
 
-        // Increment button Click listener
+        // Increment button click listener
         incrementButton.setOnClickListener(v -> {
             long currentQty = getQuantity();
             mItemQuantityEdit.setText(String.valueOf(currentQty + 1));
         });
 
-        // Decrement button Click listener - floor of 0 to prevent negative quantities
+        // Decrement button click listener - floor of 0 to prevent negative quantities
         decrementButton.setOnClickListener(v -> {
             long currentQty = getQuantity();
             if(currentQty > 0) {
@@ -138,8 +148,8 @@ public class ItemDialogFragment extends DialogFragment {
         // Request camera permission if not granted, otherwise show image source dialog
         mItemImage.setOnClickListener(v -> mImagePicker.start());
 
-        // Confirm button
-        confirmButton.setOnClickListener(v -> saveItem());
+        // Sets confirm button to save item
+        mConfirmButton.setOnClickListener(v -> saveItem());
 
         deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
 
@@ -158,7 +168,7 @@ public class ItemDialogFragment extends DialogFragment {
         });
 
         // Pressing exit dismisses dialog
-        exitButton.setOnClickListener(v -> dismiss());
+        mExitButton.setOnClickListener(v -> dismiss());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         builder.setView(view);
@@ -230,9 +240,9 @@ public class ItemDialogFragment extends DialogFragment {
         // Set all required fields
         mItem.setName(name);
         mItem.setQuantity(quantity);
-        mItem.setImageUrl(mCurrentImagePath);
+        mItem.setImageUrl(mCurrentImageUrl);
 
-        // Check if non-required fields are present, otherwise set to null
+        // For non-required fields, set if present, otherwise set as null
         String sku = mItemSkuEdit.getText().toString().trim();
         mItem.setSku(sku.isEmpty() ? null : sku);
 
@@ -242,19 +252,61 @@ public class ItemDialogFragment extends DialogFragment {
         String description = mItemDetailsEdit.getText().toString().trim();
         mItem.setDescription(description.isEmpty() ? null : description);
 
-        // If save attempt fails, communicate to user, otherwise dismiss dialog
+        String price = mItemPriceEdit.getText().toString().trim();
+        try {
+            mItem.setPrice(price.isEmpty() ? null : Double.parseDouble(price));
+        }  catch (NumberFormatException e) {
+            Toast.makeText(requireContext(), "Please enter a valid price", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (mLocalImageUri != null) {
+            mConfirmButton.setEnabled(false);
+            mExitButton.setEnabled(false);
+            setCancelable(false);
+
+            ImageStorageHelper.uploadImage(mLocalImageUri, new ImageStorageHelper.UploadCallback() {
+                @Override
+                public void onStart() { }
+
+                @Override
+                public void onSuccess(String secureUrl, String publicId) {
+                    mCurrentImageUrl = secureUrl;
+                    mItem.setImageUrl(mCurrentImageUrl);
+                    mItem.setImagePublicId(publicId);
+                    finishSave();
+                }
+
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(requireContext(), "Upload failed: " + message, Toast.LENGTH_SHORT).show();
+                    mConfirmButton.setEnabled(true);
+                    mExitButton.setEnabled(true);
+                    setCancelable(true);
+                }
+            });
+        } else {
+            mItem.setImageUrl(mCurrentImageUrl);
+            finishSave();
+        }
+    }
+
+
+    private void finishSave() {
         if (mListener != null) {
             mListener.onItemSaved(mItem, success -> {
                 if (success) {
                     dismiss();
                 } else {
                     Toast.makeText(requireContext(), "Failed to save item, please try again", Toast.LENGTH_SHORT).show();
+                    mConfirmButton.setEnabled(true);
+                    mExitButton.setEnabled(true);
+                    setCancelable(true);
                 }
             });
         } else {
             dismiss();
         }
-        
     }
 
     // Handles SMS inventory alerts, checks permissions and preferences, sends SMS if permissions enabled
