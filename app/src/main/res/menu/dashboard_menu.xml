@@ -28,6 +28,7 @@
         android:id="@+id/action_menu"
         android:icon="@drawable/ic_menu"
         android:title="@string/menu"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        />
 
 </menu>

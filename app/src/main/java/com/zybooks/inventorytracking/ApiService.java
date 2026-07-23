@@ -38,6 +38,10 @@ public interface ApiService {
     @GET("api/items/{id}")
     Call<InventoryItem> getItem(@Path("id") String id);
 
+    // GETs all item's names
+    @GET("api/items/names")
+    Call<List<String>> getAllNames();
+
 
     // DELETE a single item
     @DELETE("api/items/{id}")

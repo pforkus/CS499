@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
@@ -16,8 +15,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
-
-
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -27,6 +24,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,12 +34,15 @@ public class DashboardActivity extends BaseActivity {
 
     private InventoryViewModel mViewModel;
     private InventoryAdapter mAdapter;
+    private SuggestionAdapter mSuggestionAdapter;
     private LinearLayoutManager mLinearLayoutManager;
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
+    private RecyclerView mSuggestionRecyclerView;
     private DrawerLayout mDrawLayout;
     private SelectionModeController mSelectionModeController;
-    private ChipGroup categoryChipGroup;
+    private ChipGroup mCategoryChipGroup;
+    private SearchView mSearchView;
     private static final int COLUMN_COUNT = 3;
 
     private boolean mIsGridView = true;
@@ -52,7 +53,7 @@ public class DashboardActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        categoryChipGroup = findViewById(R.id.categoryChipGroup);
+        mCategoryChipGroup = findViewById(R.id.categoryChipGroup);
 
         setupToolbar();
         setupDrawer();
@@ -134,9 +135,7 @@ public class DashboardActivity extends BaseActivity {
         mViewModel = new ViewModelProvider(this).get(InventoryViewModel.class);
 
         // Observe the item list and update adapter when data changes
-        mViewModel.getAllItems().observe(this, items -> {
-            mAdapter.setItems(items);
-        });
+        mViewModel.getAllItems().observe(this, items -> mAdapter.setItems(items));
         mViewModel.getCategories().observe(this, this::populateCategoryChips);
     }
 
@@ -165,6 +164,7 @@ public class DashboardActivity extends BaseActivity {
         });
     }
 
+    // Sets up main recyclerview used to display inventory items as cards
     private void setupRecyclerView() {
         mRecyclerView = findViewById(R.id.recyclerView);
         // Sets up the recycler view layout options
@@ -177,6 +177,18 @@ public class DashboardActivity extends BaseActivity {
         // Creates an adapter and connects to recyclerview
         mAdapter = new InventoryAdapter();
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    private void setupSuggestionsRecyclerView() {
+        mSuggestionRecyclerView = findViewById(R.id.suggestionsRecyclerView);
+        mSuggestionRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        mSuggestionAdapter = new SuggestionAdapter(name -> {
+            mSearchView.setQuery(name, false);
+            mViewModel.search(name);
+            mSuggestionRecyclerView.setVisibility(View.GONE);
+        });
+        mSuggestionRecyclerView.setAdapter(mSuggestionAdapter);
     }
 
     private void setupWindowInsets() {
@@ -202,7 +214,7 @@ public class DashboardActivity extends BaseActivity {
     }
 
     private void populateCategoryChips(List<String> categories) {
-        categoryChipGroup.removeAllViews();
+        mCategoryChipGroup.removeAllViews();
 
         for(String category: categories) {
             Chip chip = new Chip(this);
@@ -212,17 +224,16 @@ public class DashboardActivity extends BaseActivity {
 
             chip.setOnCheckedChangeListener((buttonView, isChecked) ->
                     mViewModel.toggleCategory(category, isChecked));
-            categoryChipGroup.addView(chip);
+            mCategoryChipGroup.addView(chip);
         }
     }
-
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.dashboard_menu, menu);
         setupSearch(menu);
-
+        setupSuggestionsRecyclerView();
         return true;
     }
 
@@ -251,7 +262,6 @@ public class DashboardActivity extends BaseActivity {
             return true;
         }
 
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -276,21 +286,29 @@ public class DashboardActivity extends BaseActivity {
     private void setupSearch(Menu menu) {
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        mSearchView = (SearchView) searchItem.getActionView();
 
-
-        View searchPlate = Objects.requireNonNull(searchView)
+        View searchPlate = Objects.requireNonNull(mSearchView)
                 .findViewById(androidx.appcompat.R.id.search_plate);
         searchPlate.setBackground(
                 ContextCompat.getDrawable(this, R.drawable.search_field_background));
 
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextChange(String newText) {
                 if(newText.isEmpty()) {
                     mViewModel.clearSearch();
+                    mSuggestionAdapter.submitList(new ArrayList<>());
+                    mSuggestionRecyclerView.setVisibility(View.GONE);
+                } else {
+                    List<String> suggestions = mViewModel.getSuggestions(newText);
+                    Log.d("TRIE_DEBUG", "Suggestions for '" + newText + "': " + suggestions.size());
+                    mSuggestionAdapter.submitList(suggestions);
+                    mSuggestionRecyclerView.setVisibility(
+                            suggestions.isEmpty() ? View.GONE : View.VISIBLE
+                    );
                 }
-                return true; // FIXME wire trie hookup here
+                return true;
             }
 
             @Override
@@ -303,12 +321,11 @@ public class DashboardActivity extends BaseActivity {
         searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
-                searchView.setQuery("", false);
+                mSearchView.setQuery("", false);
                 mViewModel.clearSearch();
                 return true;
 
             }
-
             @Override
             public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
                 return true;
@@ -321,5 +338,4 @@ public class DashboardActivity extends BaseActivity {
         mIsGridView = !mIsGridView;
         mRecyclerView.setLayoutManager(mIsGridView ? mGridLayoutManager : mLinearLayoutManager);
     }
-
 }

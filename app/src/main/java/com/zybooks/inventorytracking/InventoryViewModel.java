@@ -17,12 +17,14 @@ public class InventoryViewModel extends AndroidViewModel {
     private final MutableLiveData<List<InventoryItem>> mAllItems = new MutableLiveData<>();
     private final MutableLiveData<List<String>> mCategories = new MutableLiveData<>();
     private final Set<String> mSelectedCategories = new HashSet<>();
+    private final Trie mNameTrie = new Trie();
 
     public InventoryViewModel(@NonNull Application application) {
         super(application);
         mRepository = InventoryRepository.getInstance(application.getApplicationContext());
         refreshItems();
         loadCategories();
+        loadTrieData();
     }
 
     public LiveData<List<InventoryItem>> getAllItems() {
@@ -36,6 +38,7 @@ public class InventoryViewModel extends AndroidViewModel {
     public void addItem(InventoryItem item, InventoryRepository.OnResultCallback externalCallback) {
         mRepository.addItem(item, success -> {
             if (success) {
+                mNameTrie.insert(item.getName()); // Insert new name into Trie
                 refreshItems(); // To show changed data
             }
             if (externalCallback != null) {
@@ -58,6 +61,7 @@ public class InventoryViewModel extends AndroidViewModel {
     public void deleteItem(InventoryItem item, InventoryRepository.OnResultCallback externalCallback) {
         mRepository.deleteItem(item, success -> {
             if (success) {
+                mNameTrie.delete(item.getName()); // Delete name from Trie
                 refreshItems();
             }
             if (externalCallback != null) {
@@ -69,6 +73,9 @@ public class InventoryViewModel extends AndroidViewModel {
     public void deleteItems(List<InventoryItem> items) {
         mRepository.deleteItems(items, success -> {
             if (success) {
+                for(InventoryItem item : items) {
+                    mNameTrie.delete(item.getName());
+                }
                 refreshItems();
             }
         });
@@ -109,5 +116,25 @@ public class InventoryViewModel extends AndroidViewModel {
 
         mRepository.getItems(null, categoryParam, null, null, null, null,
                 mAllItems::postValue);
+    }
+
+    // Populates the trie with the list of all names
+    public void populateTrie(List<String> allNames) {
+        for(String name : allNames) {
+            mNameTrie.insert(name);
+        }
+    }
+
+    // Returns a list of items matching the prefix entered
+    public List<String> getSuggestions(String prefix) {
+        return mNameTrie.getSuggestions(prefix);
+    }
+
+    // Retrieves the list of all item names and populates trie once they arrive
+    public void loadTrieData() {
+        mRepository.getAllNames(names -> {
+            Log.d("TRIE_DEBUG", "Names loaded: " + names.size());
+            populateTrie(names);
+        });
     }
 }

@@ -105,6 +105,10 @@ public class InventoryRepository {
         void onCategoriesLoaded(List<String> categories);
     }
 
+    public interface OnNamesChangedCallback {
+        void onNamesLoaded(List<String> names);
+    }
+
     public void getItems(String search, String category, String sort, String order, Integer page, Integer limit, OnItemsLoadedCallback callback) {
         mApiService.getItems(search, category, sort, order, page, limit).enqueue(new Callback<ItemsResponse>() {
             @Override
@@ -192,6 +196,23 @@ public class InventoryRepository {
             public void onFailure(Call<List<String>> call, Throwable t) {
                 callback.onCategoriesLoaded(Collections.emptyList());
             }
+        });
+    }
+
+    public void getAllNames(OnNamesChangedCallback callback) {
+        mApiService.getAllNames().enqueue(new Callback<List<String>>() {
+           @Override
+           public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+               if(response.isSuccessful() && response.body() != null) {
+                   callback.onNamesLoaded(response.body());
+               } else {
+                   callback.onNamesLoaded(Collections.emptyList());
+               }
+           }
+           @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+               callback.onNamesLoaded(Collections.emptyList());
+           }
         });
     }
 }
