@@ -26,14 +26,14 @@ public class SuggestionAdapter extends RecyclerView.Adapter<SuggestionAdapter.Vi
 
     public void submitList(List<String> suggestions) {
         mSuggestions = suggestions;
-        notifyDataSetChanged(); // simplest option; DiffUtil is a nice-to-have, not required
+        notifyDataSetChanged(); // FIXME
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.simple_list_item_1, parent, false); // built-in single-line row layout
+                .inflate(android.R.layout.simple_list_item_1, parent, false);
         return new ViewHolder(view);
     }
 

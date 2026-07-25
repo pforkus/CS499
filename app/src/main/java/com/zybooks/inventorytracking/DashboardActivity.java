@@ -186,9 +186,15 @@ public class DashboardActivity extends BaseActivity {
         mSuggestionAdapter = new SuggestionAdapter(name -> {
             mSearchView.setQuery(name, false);
             mViewModel.search(name);
+            dismissSuggestions();
             mSuggestionRecyclerView.setVisibility(View.GONE);
         });
         mSuggestionRecyclerView.setAdapter(mSuggestionAdapter);
+    }
+
+    private void dismissSuggestions() {
+        mSuggestionAdapter.submitList(new ArrayList<>());
+        mSuggestionRecyclerView.setVisibility(View.GONE);
     }
 
     private void setupWindowInsets() {
@@ -298,11 +304,9 @@ public class DashboardActivity extends BaseActivity {
             public boolean onQueryTextChange(String newText) {
                 if(newText.isEmpty()) {
                     mViewModel.clearSearch();
-                    mSuggestionAdapter.submitList(new ArrayList<>());
-                    mSuggestionRecyclerView.setVisibility(View.GONE);
+                    dismissSuggestions();
                 } else {
                     List<String> suggestions = mViewModel.getSuggestions(newText);
-                    Log.d("TRIE_DEBUG", "Suggestions for '" + newText + "': " + suggestions.size());
                     mSuggestionAdapter.submitList(suggestions);
                     mSuggestionRecyclerView.setVisibility(
                             suggestions.isEmpty() ? View.GONE : View.VISIBLE
@@ -314,6 +318,7 @@ public class DashboardActivity extends BaseActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 mViewModel.search(query);
+                dismissSuggestions();
                 return true;
             }
         });
