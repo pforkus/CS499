@@ -1,1 +1,36 @@
-/build
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Android Studio
+.idea/
+*.iml
+
+# Local Android SDK path
+local.properties
+
+# Build outputs
+*.apk
+*.aab
+*.aar
+
+# Generated files
+**/generated/
+
+# Native build files
+.externalNativeBuild/
+.cxx/
+
+# Signing keys (keep private)
+*.jks
+*.keystore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs/temp files
+*.log
+*.tmp
+*.swp

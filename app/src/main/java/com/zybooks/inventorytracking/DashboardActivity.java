@@ -33,6 +33,7 @@ import java.util.Objects;
 public class DashboardActivity extends BaseActivity {
 
     private InventoryViewModel mViewModel;
+    private UserViewModel mUserViewModel;
     private InventoryAdapter mAdapter;
     private SuggestionAdapter mSuggestionAdapter;
     private LinearLayoutManager mLinearLayoutManager;
@@ -131,10 +132,13 @@ public class DashboardActivity extends BaseActivity {
     }
 
     private void setupViewModel() {
-        // Sets the viewmodel
+        // Sets the inventory viewmodel
         mViewModel = new ViewModelProvider(this).get(InventoryViewModel.class);
 
-        // Observe the item list and update adapter when data changes
+        // User ViewModel
+        mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+
+        // Sets inventory viewmodel to observe the item list and update adapter when data changes
         mViewModel.getAllItems().observe(this, items -> mAdapter.setItems(items));
         mViewModel.getCategories().observe(this, this::populateCategoryChips);
     }
@@ -278,6 +282,10 @@ public class DashboardActivity extends BaseActivity {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_logout) { // Returns to the Login Activity
+            // Remove token
+            mUserViewModel.logout();
+
+            // Return to login activity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();

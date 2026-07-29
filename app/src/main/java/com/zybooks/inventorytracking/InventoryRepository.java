@@ -6,8 +6,6 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -18,7 +16,7 @@ import retrofit2.Response;
 public class InventoryRepository {
     private static InventoryRepository mInventoryRepo;
     private final ApiService mApiService;
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final TokenManager mTokenManager;
 
     // Returns existing instance or creates one if it does not exist
     public static InventoryRepository getInstance(Context context) {
@@ -29,19 +27,12 @@ public class InventoryRepository {
     }
 
     private InventoryRepository (Context context) {
-        mApiService = RetrofitClient.getInstance().create(ApiService.class);
-
-
+        mApiService = RetrofitClient.getInstance(context).create(ApiService.class);
+        mTokenManager = new TokenManager(context.getApplicationContext());
     }
 
     // === User methods === // FIXME separate into own repository
 
-    public interface OnUserAddedCallback {
-        void onUserAdded(User user);
-    }
-    public interface OnUserFetchedCallback {
-        void onUserFetched(User user);
-    }
 
     public interface OnUserCallback {
         void onResult(User user);
@@ -53,7 +44,8 @@ public class InventoryRepository {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
                 Log.d("USER_API", "Response code: " + response.code());
-                if(response.isSuccessful()) {
+                if(response.isSuccessful() && response.body() != null) {
+                    mTokenManager.saveToken(response.body().getmToken()); // Extracts and saves token
                     callback.onResult(response.body());
                 } else {
                     callback.onResult(null);
@@ -70,11 +62,13 @@ public class InventoryRepository {
 
     public void login (String username, String password, OnUserCallback callback) {
         UserRequest request = new UserRequest(username, password);
+        Log.d("LOGIN", "About to enqueue login request");
 
         mApiService.login(request).enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if(response.isSuccessful()) {
+                if(response.isSuccessful() && response.body() != null) {
+                    mTokenManager.saveToken(response.body().getmToken()); // Extracts and saves token
                     callback.onResult(response.body());
                 } else {
                     callback.onResult(null);
@@ -86,9 +80,11 @@ public class InventoryRepository {
                     callback.onResult(null);
             }
         });
-
     }
 
+    public void logout() {
+        mTokenManager.logout();
+    }
 
     // ** === Inventory item methods === ** //
     // ** ===                        === ** //

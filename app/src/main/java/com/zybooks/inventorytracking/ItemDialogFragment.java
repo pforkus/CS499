@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.Locale;
 import java.util.Objects;
 
 // Dialog fragment for adding and editing an inventory item
@@ -40,11 +41,8 @@ public class ItemDialogFragment extends DialogFragment {
     private Button mExitButton;
     private Uri mLocalImageUri;
     private String mCurrentImageUrl;
-
     private InventoryItem mItem;  // Null for add mode, set for edit mode
     private OnDialogResultListener mListener;
-
-
     private ImagePickerController mImagePicker;
 
 
@@ -115,7 +113,7 @@ public class ItemDialogFragment extends DialogFragment {
             mItemNameEdit.setText(Objects.requireNonNull(mItem).getName());
             mItemQuantityEdit.setText(String.valueOf(mItem.getQuantity()));
             mItemSkuEdit.setText(mItem.getSku());
-            mItemPriceEdit.setText(String.valueOf(mItem.getPrice()));
+            mItemPriceEdit.setText(String.format(Locale.US, "%.2f", mItem.getPrice())); // Formatted to avoid trimmed trailing zeroes
             mItemCategoryEdit.setText(mItem.getCategory());
             mItemDetailsEdit.setText(mItem.getDescription());
 

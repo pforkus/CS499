@@ -9,7 +9,10 @@ public class User implements Serializable {
 
     @SerializedName("_id")
     private String mId;
+    @SerializedName("username")
     private String mUsername;
+    @SerializedName("token")
+    private String mToken;
 
     public String getmUsername() {
         return mUsername;
@@ -18,4 +21,6 @@ public class User implements Serializable {
     public String getmId() {
         return mId;
     }
+
+    public String getmToken() { return mToken; }
 }

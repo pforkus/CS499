@@ -49,4 +49,8 @@ public class UserViewModel extends AndroidViewModel {
         });
     }
 
+    public void logout() {
+        mRepository.logout();
+    }
+
 }
