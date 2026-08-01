@@ -2,6 +2,8 @@ package com.zybooks.inventorytracking;
 
 import android.content.Context;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Retrofit;
@@ -16,6 +18,8 @@ public class RetrofitClient {
             TokenManager tokenManager = new TokenManager(context.getApplicationContext());
 
             OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(20, TimeUnit.SECONDS)
+                    .readTimeout(25, TimeUnit.SECONDS)
                     .addInterceptor(chain -> {
                         Request original = chain.request();
                         String token = tokenManager.getToken();

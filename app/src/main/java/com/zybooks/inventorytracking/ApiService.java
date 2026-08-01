@@ -63,4 +63,8 @@ public interface ApiService {
 
     @POST("api/users/login")
     Call<User> login(@Body UserRequest request);
+
+    // Calls to proactively wake up server
+    @GET("api/users/health")
+    Call<Void> ping();
 }

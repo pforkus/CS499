@@ -10,17 +10,22 @@ import androidx.lifecycle.MutableLiveData;
 
 public class UserViewModel extends AndroidViewModel {
     private final InventoryRepository mRepository;
-
+    private final ServerRepository mServerRepository;
     private final MutableLiveData<User> mUser = new MutableLiveData<>();
     private final MutableLiveData<String> mError = new MutableLiveData<>();
+
 
     public UserViewModel(@NonNull Application application) {
         super(application);
         mRepository = InventoryRepository.getInstance(
                 application.getApplicationContext()
         );
+        mServerRepository = ServerRepository.getInstance(application);
     }
 
+    public LiveData<ServerRepository.ServerState> getServerState() {
+        return mServerRepository.getState();
+    }
     public LiveData<User> getUser() {
         return mUser;
     }
@@ -28,6 +33,7 @@ public class UserViewModel extends AndroidViewModel {
     public LiveData<String> getError() {
         return mError;
     }
+
 
     public void login(String username, String password) {
         mRepository.login(username, password, user -> {
@@ -52,5 +58,4 @@ public class UserViewModel extends AndroidViewModel {
     public void logout() {
         mRepository.logout();
     }
-
 }

@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -24,13 +25,6 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
 
-
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 // Handles user login and account creation
 public class LoginActivity extends BaseActivity {
 
@@ -38,6 +32,9 @@ public class LoginActivity extends BaseActivity {
     private EditText mPasswordEdit;
     private TextView mErrorText;
     private UserViewModel mViewModel;
+    private Button mLoginButton;
+    private Button mCreateButton;
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +50,42 @@ public class LoginActivity extends BaseActivity {
 
         mUsernameEdit = findViewById(R.id.username);
         mPasswordEdit = findViewById(R.id.password);
+        mLoginButton = findViewById(R.id.login);
+        mCreateButton = findViewById(R.id.create);
         mErrorText = findViewById(R.id.login_error);
+        mProgressBar = findViewById(R.id.progressBar);
+
         mViewModel = new ViewModelProvider(this)
                 .get(UserViewModel.class);
 
-
-        setupClickListener();
+        setupCreateListener();
         setupLoginListener();
+
+        // Disable buttons until server connection is established
+        mLoginButton.setEnabled(false);
+        mCreateButton.setEnabled(false);
+
+        mViewModel.getServerState().observe(this, state -> {
+            switch(state) {
+                case WAKING:
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    showStatus("Spinning up greatness");
+                    break;
+                case READY:
+                    mProgressBar.setVisibility(View.GONE);
+                    hideStatus();
+                    mLoginButton.setEnabled(true);
+                    mCreateButton.setEnabled(true);
+                    break;
+                case FAILED:
+                    mProgressBar.setVisibility(View.GONE);
+                    mLoginButton.setEnabled(true);
+                    mCreateButton.setEnabled(true);
+                    showStatus("Could not reach the server, please try again");
+                    break;
+            }
+        });
+
         setupForgotPasswordListener();
         observeUser();
 
@@ -82,44 +108,48 @@ public class LoginActivity extends BaseActivity {
         }
         return super.dispatchTouchEvent(ev);
     }
-    private void showError(String message) {
+    private void showStatus(String message) {
         mErrorText.setText(message);
         mErrorText.setVisibility(View.VISIBLE);
     }
 
-
+    private void hideStatus() {
+        mErrorText.setVisibility(View.GONE);
+    }
     private void setupLoginListener() {
         Button loginButton = findViewById(R.id.login);
-        loginButton.setOnClickListener(v -> {
-            String username = mUsernameEdit.getText().toString().trim();
-            String password = mPasswordEdit.getText().toString().trim();
-
-            if (username.isEmpty() || password.isEmpty()) {
-                showError("Please enter username and password");
-                return;
-            }
-
-            // Check credentials against database
-            mViewModel.login(username, password);
-        });
+        loginButton.setOnClickListener(v -> doLogin());
     }
-    private void setupClickListener(){
+    private void setupCreateListener(){
         Button createButton = findViewById(R.id.create);
-        createButton.setOnClickListener(v ->  {
-
-            String username = mUsernameEdit.getText().toString().trim();
-            String password = mPasswordEdit.getText().toString().trim();
-
-            // Check if fields were left empty
-            if(username.isEmpty() || password.isEmpty()) {
-                showError("Please enter username and password");
-                return;
-            }
-
-            // Check if username already exists
-            mViewModel.createUser(username, password);
-        });
+        createButton.setOnClickListener(v ->  doCreate());
     }
+
+    private void doCreate() {
+        String username = mUsernameEdit.getText().toString().trim();
+        String password = mPasswordEdit.getText().toString().trim();
+
+        // Check if fields were left empty
+        if(username.isEmpty() || password.isEmpty()) {
+            showStatus("Please enter username and password");
+            return;
+        }
+
+        mViewModel.createUser(username, password);
+    }
+
+    private void doLogin() {
+        String username = mUsernameEdit.getText().toString().trim();
+        String password = mPasswordEdit.getText().toString().trim();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            showStatus("Please enter username and password");
+            return;
+        }
+
+        mViewModel.login(username, password);
+    }
+
     private void setupForgotPasswordListener() {
         TextView forgotPassword = findViewById(R.id.forgot_password);
         // Show a dialog explaining that password recovery is unavailable
@@ -147,7 +177,7 @@ public class LoginActivity extends BaseActivity {
 
         mViewModel.getError().observe(this, error -> {
             if(error != null) {
-                showError(error);
+                showStatus(error);
             }
         });
     }
