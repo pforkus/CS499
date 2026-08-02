@@ -55,26 +55,36 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/qty"
+            android:layout_marginEnd="1dp"
             style="@style/CardLabel"
             app:layout_constraintHorizontal_chainStyle="packed"
             android:gravity="end"
             app:layout_constraintEnd_toStartOf="@id/item_quantity"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginEnd="6dp"
             />
 
         <TextView
             android:id="@+id/item_quantity"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/CardLabel"
             android:ellipsize="end"
             android:maxLines="1"
+            android:maxEms="6"
             android:gravity="end"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/item_quantity_label"
             app:layout_constraintBottom_toBottomOf="parent"
             tools:text="999999999999999999999999999999999999999999999"
+            />
+
+        <TextView
+            android:id="@+id/item_price_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/CardLabel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="$19.99"
             />
 
 

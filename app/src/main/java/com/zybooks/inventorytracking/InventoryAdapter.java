@@ -9,8 +9,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
 
 // Adapter for displaying inventory items in a RecyclerView
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ItemViewHolder> {
@@ -18,6 +21,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     private List<InventoryItem> mItems = new ArrayList<>();
     private OnItemClickListener mItemClickListener;
     private OnSelectionStateChangedListener mSelectionStateChangedListener;
+    private static final int VIEW_TYPE_GRID = 0;
+    private static final int VIEW_TYPE_LIST = 1;
+    private boolean mIsGridView = true;
 
     // Multiselect state
     public final SelectionTracker<String> selection = new SelectionTracker<>();
@@ -43,8 +49,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        int layoutId = (viewType == VIEW_TYPE_GRID)
+                ? R.layout.recycler_view_items
+                : R.layout.recycler_view_items_list;
+
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.recycler_view_items, parent, false);
+                .inflate(layoutId, parent, false);
         return new ItemViewHolder(view);
     }
 
@@ -64,7 +74,17 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     // Updates the adapter data and refreshes recyclerview
     public void setItems(List<InventoryItem> items) {
         mItems = items;
-        notifyDataSetChanged(); // FIXME seek more efficient alternatives
+        notifyDataSetChanged();
+    }
+
+    public void setGridView(boolean isGridView) {
+        mIsGridView = isGridView;
+        notifyDataSetChanged();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return mIsGridView ? VIEW_TYPE_GRID : VIEW_TYPE_LIST;
     }
 
     // ==========
@@ -95,19 +115,21 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
 
         // When selection mode ends, rebind all rows
         if(!selection.isActive()) {
-            notifyDataSetChanged(); // FIXME seek more efficient alternatives
+            notifyDataSetChanged();
         }
      }
 
      public void clearSelection() {
         selection.clear();
-        notifyDataSetChanged(); // FIXME seek more efficient alternatives (i.e: DiffUtil, NotifyItemRangedChanged)
+        notifyDataSetChanged();
      }
 
      public class ItemViewHolder extends RecyclerView.ViewHolder {
         private final TextView mNameTextView;
         private final TextView mQuantityTextView;
         private final ImageView mItemImageView;
+        private final TextView mCategoryTextView;
+        private final TextView mPriceTextView;
 
 
 
@@ -116,6 +138,8 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             mNameTextView = itemView.findViewById(R.id.item_text_name);
             mQuantityTextView = itemView.findViewById(R.id.item_quantity);
             mItemImageView = itemView.findViewById(R.id.item_image_view);
+            mCategoryTextView = itemView.findViewById(R.id.item_category_value);
+            mPriceTextView = itemView.findViewById(R.id.item_price_value);
         }
 
         // Bind inventory item data to view holder view
@@ -123,12 +147,22 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             mNameTextView.setText(item.getName());
             mQuantityTextView.setText(String.valueOf(item.getQuantity()));
 
-            // Display item image if it exists, otherwise uses logo as image
-            if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
-                ImageStorageHelper.loadImage(item.getImageUrl(), mItemImageView);
-            } else {
-                mItemImageView.setImageResource(R.drawable.vector_logo);
+
+            if(mCategoryTextView != null) {
+                mCategoryTextView.setText(item.getCategory());
             }
+            if(mPriceTextView != null) {
+                mPriceTextView.setText(formatPrice(item.getPrice()));
+            }
+            if(mItemImageView != null) {
+                // Display item image if it exists, otherwise uses logo as image
+                if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
+                    ImageStorageHelper.loadImage(item.getImageUrl(), mItemImageView);
+                } else {
+                    mItemImageView.setImageResource(R.drawable.vector_logo);
+                }
+            }
+
 
             // Tracks Multi-select UI state
             boolean isSelected = selection.isSelected(item.getId());
@@ -159,6 +193,11 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
                 }
                 return true;
             });
+        }
+
+        private String formatPrice(Double price) {
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+            return currencyFormat.format(price);
         }
     }
 }

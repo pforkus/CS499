@@ -170,7 +170,9 @@ public class DashboardActivity extends BaseActivity {
 
     // Sets up main recyclerview used to display inventory items as cards
     private void setupRecyclerView() {
+
         mRecyclerView = findViewById(R.id.recyclerView);
+
         // Sets up the recycler view layout options
         mGridLayoutManager = new GridLayoutManager(this, COLUMN_COUNT);
         mLinearLayoutManager = new LinearLayoutManager(this);
@@ -350,5 +352,6 @@ public class DashboardActivity extends BaseActivity {
     private void toggleLayoutManager() {
         mIsGridView = !mIsGridView;
         mRecyclerView.setLayoutManager(mIsGridView ? mGridLayoutManager : mLinearLayoutManager);
+        mAdapter.setGridView(mIsGridView);
     }
 }
