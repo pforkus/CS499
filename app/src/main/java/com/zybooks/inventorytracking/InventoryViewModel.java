@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,8 +17,17 @@ public class InventoryViewModel extends AndroidViewModel {
     private final InventoryRepository mRepository;
     private final MutableLiveData<List<InventoryItem>> mAllItems = new MutableLiveData<>();
     private final MutableLiveData<List<String>> mCategories = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> mIsLoading = new MutableLiveData<>(false);
     private final Set<String> mSelectedCategories = new HashSet<>();
     private final Trie mNameTrie = new Trie();
+
+    // Current query state
+    private String mCurrentSearch = null;
+    private String mCurrentSort = null;
+    private String mCurrentOrder = null;
+    private int mCurrentPage = 1;
+    private int mTotalPages = 1;
+    private static final int PAGE_SIZE = 20;
 
     public InventoryViewModel(@NonNull Application application) {
         super(application);
@@ -30,9 +40,50 @@ public class InventoryViewModel extends AndroidViewModel {
     public LiveData<List<InventoryItem>> getAllItems() {
         return mAllItems;
     }
-
+    public LiveData<Boolean> getIsLoading() { return mIsLoading; }
     public LiveData<List<String>> getCategories() {
         return mCategories;
+    }
+
+    public boolean hasMorePages() {
+        return mCurrentPage < mTotalPages;
+    }
+
+    public void loadNextPage() {
+        if(Boolean.TRUE.equals(mIsLoading.getValue()) || !hasMorePages()) return;
+        mCurrentPage++;
+        fetchCurrentQuery(false);
+    }
+
+    private void startNewQuery() {
+        mCurrentPage = 1;
+        mTotalPages = 1;
+        fetchCurrentQuery(true);
+    }
+
+    private void fetchCurrentQuery(boolean isFreshQuery) {
+        mIsLoading.setValue(true);
+        String categoryParam = mSelectedCategories.isEmpty()
+                ? null
+                : String.join(",", mSelectedCategories);
+
+        mRepository.getItems(mCurrentSearch, categoryParam, mCurrentSort, mCurrentOrder, mCurrentPage, PAGE_SIZE,
+                (items, pagination) -> {
+            mIsLoading.postValue(false);
+            if(pagination != null) {
+                mTotalPages = pagination.getPages();
+            }
+            if (isFreshQuery) {
+                mAllItems.postValue(items);
+            }else {
+                List<InventoryItem> current = new ArrayList<>(
+                        mAllItems.getValue() != null
+                                ? mAllItems.getValue()
+                                : new ArrayList<>());
+                current.addAll(items);
+                mAllItems.postValue(current);
+            }
+                });
     }
 
     public void addItem(InventoryItem item, InventoryRepository.OnResultCallback externalCallback) {
@@ -96,26 +147,23 @@ public class InventoryViewModel extends AndroidViewModel {
     }
 
     public void search(String query) {
-        mRepository.getItems(query, null, null, null, null, null,
-                mAllItems::postValue);
+        mCurrentSearch = query;
+        startNewQuery();
     }
 
     public void clearSearch() {
-        refreshItems();
+        mCurrentSearch = null;
+        startNewQuery();
     }
 
     public void sort(String sortField, String sortOrder) {
-        mRepository.getItems(null, null, sortField, sortOrder, null, null,
-                mAllItems::postValue);
+        mCurrentSort = sortField;
+        mCurrentOrder = sortOrder;
+        startNewQuery();
     }
-    // Clear parameters besides set categories, retains previous category selection
-    private void refreshItems() {
-        String categoryParam = mSelectedCategories.isEmpty()
-                ? null
-                : String.join(",", mSelectedCategories);
 
-        mRepository.getItems(null, categoryParam, null, null, null, null,
-                mAllItems::postValue);
+    private void refreshItems() {
+        startNewQuery();
     }
 
     // Populates the trie with the list of all names

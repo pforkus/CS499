@@ -9,7 +9,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.ArrayList;
@@ -145,14 +144,18 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
         // Bind inventory item data to view holder view
         public void bind(InventoryItem item) {
             mNameTextView.setText(item.getName());
-            mQuantityTextView.setText(String.valueOf(item.getQuantity()));
+
+            // Simplifies big quantitys' formats to avoid ellipsizes hogging card space
+            mQuantityTextView.setText(item.getQuantity() > 999
+                    ? "999+" : String.valueOf(item.getQuantity()));
 
 
             if(mCategoryTextView != null) {
                 mCategoryTextView.setText(item.getCategory());
             }
-            if(mPriceTextView != null) {
-                mPriceTextView.setText(formatPrice(item.getPrice()));
+            if(mPriceTextView != null) { // Simplifies formatting of big prices
+                mPriceTextView.setText(item.getPrice() > 9999.99
+                ? "$9,999.99+" : formatPrice(item.getPrice()));
             }
             if(mItemImageView != null) {
                 // Display item image if it exists, otherwise uses logo as image

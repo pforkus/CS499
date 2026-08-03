@@ -2,7 +2,6 @@ package com.zybooks.inventorytracking;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,7 +43,7 @@ public class DashboardActivity extends BaseActivity {
     private SelectionModeController mSelectionModeController;
     private ChipGroup mCategoryChipGroup;
     private SearchView mSearchView;
-    private static final int COLUMN_COUNT = 3;
+    private static final int COLUMN_COUNT = 2;
 
     private boolean mIsGridView = true;
     private String mLastAppliedTextSize;
@@ -60,6 +59,7 @@ public class DashboardActivity extends BaseActivity {
         setupDrawer();
         setupWindowInsets();
         setupRecyclerView();
+        setupSuggestionsRecyclerView();
         setupFab();
         setupViewModel();
         setupClickListener();
@@ -183,6 +183,25 @@ public class DashboardActivity extends BaseActivity {
         // Creates an adapter and connects to recyclerview
         mAdapter = new InventoryAdapter();
         mRecyclerView.setAdapter(mAdapter);
+
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                super.onScrolled(rv, dx, dy);
+                if(dy <= 0) return;
+                LinearLayoutManager lm = (LinearLayoutManager) rv.getLayoutManager();
+                if(lm == null) return;
+
+                int visibleItemCount = lm.getChildCount();
+                int totalItemCount = lm.getItemCount();
+                int firstVariable = lm.findFirstVisibleItemPosition();
+                final int REFRESH_BUFFER = 4;
+
+                if((visibleItemCount + firstVariable) >= totalItemCount - REFRESH_BUFFER) {
+                    mViewModel.loadNextPage();
+                }
+            }
+        });
     }
 
     private void setupSuggestionsRecyclerView() {
@@ -245,7 +264,7 @@ public class DashboardActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.dashboard_menu, menu);
         setupSearch(menu);
-        setupSuggestionsRecyclerView();
+
         return true;
     }
 

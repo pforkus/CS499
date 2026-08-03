@@ -90,7 +90,7 @@ public class InventoryRepository {
     // ** ===                        === ** //
 
     public interface OnItemsLoadedCallback {
-        void onItemsLoaded(List<InventoryItem> items);
+        void onItemsLoaded(List<InventoryItem> items, Pagination pagination);
     }
 
     public interface OnResultCallback {
@@ -110,14 +110,14 @@ public class InventoryRepository {
             @Override
             public void onResponse(Call<ItemsResponse> call, Response<ItemsResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    callback.onItemsLoaded(response.body().getItems());
+                    callback.onItemsLoaded(response.body().getItems(),  response.body().getPagination());
                 } else {
-                    callback.onItemsLoaded(Collections.emptyList());
+                    callback.onItemsLoaded(Collections.emptyList(), null);
                 }
             }
             @Override
             public void onFailure(Call<ItemsResponse> call, Throwable t) {
-                callback.onItemsLoaded(Collections.emptyList());
+                callback.onItemsLoaded(Collections.emptyList(), null);
             }
         });
     }

@@ -24,35 +24,37 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.3"
-            card_view:layout_constraintGuide_begin="132dp" />
+             />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide_6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.6" />
+            app:layout_constraintGuide_percent="0.6"
+             />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide_8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.83" />
+            app:layout_constraintGuide_percent="0.75"
+             />
 
 
 
         <TextView
             android:id="@+id/item_text_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
             android:ellipsize="end"
-            android:maxEms="7"
             style="@style/CardLabel"
-            android:gravity="center_horizontal"
+            android:gravity="start"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guide_3"
             tools:text="Playstation 5 Pro U"/>
 
 
@@ -60,16 +62,16 @@
 
         <TextView
             android:id="@+id/item_category_value"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             style="@style/CardLabel"
-            android:maxEms="6"
             android:maxLines="1"
-            android:gravity="end"
+            android:gravity="center"
             android:ellipsize="end"
             android:layout_marginStart="8dp"
             app:layout_constraintStart_toEndOf="@id/guide_3"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/guide_6"
             tools:text="Entertainment Systems"
             />
 
@@ -79,37 +81,37 @@
             android:layout_height="wrap_content"
             android:text="@string/qty"
             style="@style/CardLabel"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="2dp"
             app:layout_constraintStart_toEndOf="@id/guide_6"
             app:layout_constraintTop_toTopOf="parent"
             />
 
         <TextView
             android:id="@+id/item_quantity"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             style="@style/CardLabel"
             android:ellipsize="end"
-            android:maxEms="3"
             android:maxLines="1"
-            android:gravity="end"
-            android:layout_marginEnd="10dp"
+            android:gravity="start"
+            android:layout_marginStart="2dp"
             app:layout_constraintStart_toEndOf="@id/item_quantity_label"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="99999999999"
+            app:layout_constraintEnd_toStartOf="@id/guide_8"
+            tools:text="999999999999"
             />
 
         <TextView
             android:id="@+id/item_price_value"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             style="@style/CardLabel"
-            android:maxEms="4"
             android:maxLines="1"
             android:ellipsize="end"
             app:layout_constraintStart_toEndOf="@id/guide_8"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="$1999.00"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="$1999900000009.00"
             />
 
 
