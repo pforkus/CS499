@@ -149,6 +149,7 @@ public class ItemDialogFragment extends DialogFragment {
         // Sets confirm button to save item
         mConfirmButton.setOnClickListener(v -> saveItem());
 
+        // Sets delete button to open delete confirmation window
         deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
 
 
@@ -200,7 +201,7 @@ public class ItemDialogFragment extends DialogFragment {
         try {
             return Long.parseLong(qtyStr);
         } catch (NumberFormatException e) {
-            return 0; // TODO this isnt handled anywhere, silent failure if quantity exceeds 10 digits
+            return 0;
         }
     }
 

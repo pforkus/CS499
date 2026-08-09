@@ -7,12 +7,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.NumberFormat;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Set;
 
 // Adapter for displaying inventory items in a RecyclerView
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ItemViewHolder> {
@@ -71,9 +74,11 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
     }
 
     // Updates the adapter data and refreshes recyclerview
-    public void setItems(List<InventoryItem> items) {
-        mItems = items;
-        notifyDataSetChanged();
+    public void setItems(List<InventoryItem> newItems) {
+        ItemDiffCallback callback = new ItemDiffCallback(mItems, newItems);
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(callback);
+        mItems = newItems;
+        result.dispatchUpdatesTo(this);
     }
 
     public void setGridView(boolean isGridView) {
@@ -104,23 +109,23 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
      private void toggleSelection(InventoryItem item, int position) {
 
         selection.toggle(item.getId());
-
-        // Rebinds item so selected items are shown as such
         notifyItemChanged(position);
 
         if(mSelectionStateChangedListener != null) {
             mSelectionStateChangedListener.onSelectionChanged();
         }
-
-        // When selection mode ends, rebind all rows
-        if(!selection.isActive()) {
-            notifyDataSetChanged();
-        }
      }
 
      public void clearSelection() {
+        // Create a snapshot of selected items ids
+        Set<String> previouslySelected = selection.selectedIds();
+
         selection.clear();
-        notifyDataSetChanged();
+        for(int i = 0; i < mItems.size(); i++) {
+            if(previouslySelected.contains(mItems.get(i).getId())) {
+                notifyItemChanged(i);
+            }
+        }
      }
 
      public class ItemViewHolder extends RecyclerView.ViewHolder {
