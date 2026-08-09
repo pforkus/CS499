@@ -3,6 +3,8 @@ package com.zybooks.inventorytracking;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,11 +42,11 @@ public class InventoryRepository {
     public void createUser(String username, String password, OnUserCallback callback) {
         UserRequest request = new UserRequest(username, password);
 
-        mApiService.createUser(request).enqueue(new Callback<User>() {
+        mApiService.createUser(request).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
+            public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                 Log.d("USER_API", "Response code: " + response.code());
-                if(response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null) {
                     mTokenManager.saveToken(response.body().getmToken()); // Extracts and saves token
                     callback.onResult(response.body());
                 } else {
@@ -53,7 +55,7 @@ public class InventoryRepository {
             }
 
             @Override
-            public void onFailure(Call<User> call, Throwable t) {
+            public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                 Log.e("USER_API", "Failed", t);
                 callback.onResult(null);
             }
@@ -64,10 +66,10 @@ public class InventoryRepository {
         UserRequest request = new UserRequest(username, password);
         Log.d("LOGIN", "About to enqueue login request");
 
-        mApiService.login(request).enqueue(new Callback<User>() {
+        mApiService.login(request).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
-                if(response.isSuccessful() && response.body() != null) {
+            public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
+                if (response.isSuccessful() && response.body() != null) {
                     mTokenManager.saveToken(response.body().getmToken()); // Extracts and saves token
                     callback.onResult(response.body());
                 } else {
@@ -76,8 +78,8 @@ public class InventoryRepository {
             }
 
             @Override
-            public void onFailure(Call<User> call, Throwable t) {
-                    callback.onResult(null);
+            public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
+                callback.onResult(null);
             }
         });
     }
@@ -106,56 +108,60 @@ public class InventoryRepository {
     }
 
     public void getItems(String search, String category, String sort, String order, Integer page, Integer limit, OnItemsLoadedCallback callback) {
-        mApiService.getItems(search, category, sort, order, page, limit).enqueue(new Callback<ItemsResponse>() {
+        mApiService.getItems(search, category, sort, order, page, limit).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<ItemsResponse> call, Response<ItemsResponse> response) {
+            public void onResponse(@NonNull Call<ItemsResponse> call, @NonNull Response<ItemsResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    callback.onItemsLoaded(response.body().getItems(),  response.body().getPagination());
+                    callback.onItemsLoaded(response.body().getItems(), response.body().getPagination());
                 } else {
                     callback.onItemsLoaded(Collections.emptyList(), null);
                 }
             }
+
             @Override
-            public void onFailure(Call<ItemsResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<ItemsResponse> call, @NonNull Throwable t) {
                 callback.onItemsLoaded(Collections.emptyList(), null);
             }
         });
     }
 
     public void addItem(InventoryItem item, OnResultCallback callback) {
-        mApiService.createItem(item).enqueue(new Callback<InventoryItem>() {
+        mApiService.createItem(item).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<InventoryItem> call, Response<InventoryItem> response) {
+            public void onResponse(@NonNull Call<InventoryItem> call, @NonNull Response<InventoryItem> response) {
                 callback.onResult(response.isSuccessful());
             }
+
             @Override
-            public void onFailure(Call<InventoryItem> call, Throwable t) {
+            public void onFailure(@NonNull Call<InventoryItem> call, @NonNull Throwable t) {
                 callback.onResult(false);
             }
         });
     }
 
     public void updateItem(InventoryItem item, OnResultCallback callback) {
-        mApiService.updateItem(item.getId(), item).enqueue(new Callback<InventoryItem>() {
+        mApiService.updateItem(item.getId(), item).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<InventoryItem> call, Response<InventoryItem> response) {
+            public void onResponse(@NonNull Call<InventoryItem> call, @NonNull Response<InventoryItem> response) {
                 callback.onResult(response.isSuccessful());
             }
+
             @Override
-            public void onFailure(Call<InventoryItem> call, Throwable t) {
+            public void onFailure(@NonNull Call<InventoryItem> call, @NonNull Throwable t) {
                 callback.onResult(false);
             }
         });
     }
 
     public void deleteItem(InventoryItem item, OnResultCallback callback) {
-        mApiService.deleteItem(item.getId()).enqueue(new Callback<Void>() {
+        mApiService.deleteItem(item.getId()).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 callback.onResult(response.isSuccessful());
             }
+
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                 callback.onResult(false);
             }
         });
@@ -166,49 +172,52 @@ public class InventoryRepository {
         for (InventoryItem item : items) {
             ids.add(item.getId());
         }
-        mApiService.deleteItems(new DeleteRequest(ids)).enqueue(new Callback<DeleteResponse>() {
+        mApiService.deleteItems(new DeleteRequest(ids)).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<DeleteResponse> call, Response<DeleteResponse> response) {
+            public void onResponse(@NonNull Call<DeleteResponse> call, @NonNull Response<DeleteResponse> response) {
                 callback.onResult(response.isSuccessful());
             }
+
             @Override
-            public void onFailure(Call<DeleteResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<DeleteResponse> call, @NonNull Throwable t) {
                 callback.onResult(false);
             }
         });
     }
 
     public void getCategories(OnCategoriesLoadedCallback callback) {
-        mApiService.getCategories().enqueue(new Callback<List<String>>() {
+        mApiService.getCategories().enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+            public void onResponse(@NonNull Call<List<String>> call, @NonNull Response<List<String>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onCategoriesLoaded(response.body());
                 } else {
                     callback.onCategoriesLoaded(Collections.emptyList());
                 }
             }
+
             @Override
-            public void onFailure(Call<List<String>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {
                 callback.onCategoriesLoaded(Collections.emptyList());
             }
         });
     }
 
     public void getAllNames(OnNamesChangedCallback callback) {
-        mApiService.getAllNames().enqueue(new Callback<List<String>>() {
-           @Override
-           public void onResponse(Call<List<String>> call, Response<List<String>> response) {
-               if(response.isSuccessful() && response.body() != null) {
-                   callback.onNamesLoaded(response.body());
-               } else {
-                   callback.onNamesLoaded(Collections.emptyList());
-               }
-           }
-           @Override
-            public void onFailure(Call<List<String>> call, Throwable t) {
-               callback.onNamesLoaded(Collections.emptyList());
-           }
+        mApiService.getAllNames().enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<String>> call, @NonNull Response<List<String>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onNamesLoaded(response.body());
+                } else {
+                    callback.onNamesLoaded(Collections.emptyList());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<String>> call, @NonNull Throwable t) {
+                callback.onNamesLoaded(Collections.emptyList());
+            }
         });
     }
 }

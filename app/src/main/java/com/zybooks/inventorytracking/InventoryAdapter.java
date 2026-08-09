@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.NumberFormat;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -150,7 +149,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
         public void bind(InventoryItem item) {
             mNameTextView.setText(item.getName());
 
-            // Simplifies big quantitys' formats to avoid ellipsizes hogging card space
+            // Simplifies big quantity's formats to avoid ellipsizes hogging card space
             mQuantityTextView.setText(item.getQuantity() > 999
                     ? "999+" : String.valueOf(item.getQuantity()));
 
@@ -158,10 +157,16 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Item
             if(mCategoryTextView != null) {
                 mCategoryTextView.setText(item.getCategory());
             }
-            if(mPriceTextView != null) { // Simplifies formatting of big prices
-                mPriceTextView.setText(item.getPrice() > 9999.99
-                ? "$9,999.99+" : formatPrice(item.getPrice()));
+            if (mPriceTextView != null) {
+                if (item.getPrice() == null) {
+                    mPriceTextView.setText("");
+                } else if (item.getPrice() > 9999.99) {
+                    mPriceTextView.setText(R.string.largePricePlaceHolder);
+                } else {
+                    mPriceTextView.setText(formatPrice(item.getPrice()));
+                }
             }
+
             if(mItemImageView != null) {
                 // Display item image if it exists, otherwise uses logo as image
                 if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {

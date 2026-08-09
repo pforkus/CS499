@@ -15,12 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.content.ContextCompat;
-import android.telephony.SmsManager;
-import android.content.SharedPreferences;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.util.Locale;
@@ -44,6 +38,7 @@ public class ItemDialogFragment extends DialogFragment {
     private InventoryItem mItem;  // Null for add mode, set for edit mode
     private OnDialogResultListener mListener;
     private ImagePickerController mImagePicker;
+    private SmsAlertManager mSmsAlertManager;
 
 
     public interface OnDialogResultListener {
@@ -72,15 +67,11 @@ public class ItemDialogFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mSmsAlertManager = new SmsAlertManager(requireContext());
 
-        mImagePicker = new ImagePickerController(this, new ImagePickerController.OnImageReadyListener() {
-            @Override
-            public void onImagePreviewReady(Uri localUri) {
-                Log.d("ImageFlow", "onImagePreviewReady called with: " + localUri);
-                mLocalImageUri = localUri;
-                ImageStorageHelper.loadImage(localUri, mItemImage);
-                Log.d("ImageFlow", "loadImage called, mItemImage = " + mItemImage);
-            }
+        mImagePicker = new ImagePickerController(this, localUri -> {
+            mLocalImageUri = localUri;
+            ImageStorageHelper.loadImage(localUri, mItemImage);
         });
     }
 
@@ -113,7 +104,9 @@ public class ItemDialogFragment extends DialogFragment {
             mItemNameEdit.setText(Objects.requireNonNull(mItem).getName());
             mItemQuantityEdit.setText(String.valueOf(mItem.getQuantity()));
             mItemSkuEdit.setText(mItem.getSku());
-            mItemPriceEdit.setText(String.format(Locale.US, "%.2f", mItem.getPrice())); // Formatted to avoid trimmed trailing zeroes
+            if(mItem.getPrice() != null) {
+                mItemPriceEdit.setText(String.format(Locale.US, "%.2f", mItem.getPrice())); // Formatted to avoid trimmed trailing zeroes
+            }
             mItemCategoryEdit.setText(mItem.getCategory());
             mItemDetailsEdit.setText(mItem.getDescription());
 
@@ -132,15 +125,20 @@ public class ItemDialogFragment extends DialogFragment {
         // Increment button click listener
         incrementButton.setOnClickListener(v -> {
             long currentQty = getQuantity();
+            if(currentQty == Long.MAX_VALUE) {
+                Toast.makeText(requireContext(), "Max reached!", Toast.LENGTH_SHORT).show();
+            }
             mItemQuantityEdit.setText(String.valueOf(currentQty + 1));
         });
 
         // Decrement button click listener - floor of 0 to prevent negative quantities
         decrementButton.setOnClickListener(v -> {
             long currentQty = getQuantity();
-            if(currentQty > 0) {
-                mItemQuantityEdit.setText(String.valueOf(currentQty - 1));
+            if(currentQty <= 0) {
+                Toast.makeText(requireContext(), "Out of Stock!", Toast.LENGTH_SHORT).show();
+                return;
             }
+            mItemQuantityEdit.setText(String.valueOf(currentQty - 1));
         });
 
         // Request camera permission if not granted, otherwise show image source dialog
@@ -207,39 +205,20 @@ public class ItemDialogFragment extends DialogFragment {
 
     // Validates and sets fields for saved item
     private void saveItem() {
+        if(!validateFields()) return;
 
-        // Validate required fields- name and quantity
         String name = mItemNameEdit.getText().toString().trim();
-        if(name.isEmpty()){
-            mItemNameEdit.setError("Name Required");
-            return;
-        }
-
-        // Checks if quantity field is empty
-        String quantityText = mItemQuantityEdit.getText().toString().trim();
-        if (quantityText.isEmpty()) {
-            mItemQuantityEdit.setError("Quantity Required");
-            return;
-        }
-
-        // Checks if quantity is valid number
-        long quantity;
-        try {
-            quantity = Long.parseLong(quantityText);
-        } catch (NumberFormatException e) {
-            mItemQuantityEdit.setError("Invalid quantity");
-            return;
-        }
+        long quantity = Long.parseLong(mItemQuantityEdit.getText().toString().trim());
 
         // Trigger SMS alert if item is out of stock
         if(quantity <= 0) {
-            sendLowInventoryAlert(name);
+            mSmsAlertManager.sendLowInventoryAlert(name);
+            Toast.makeText(requireContext(), name + " is out of stock, consider replenishing", Toast.LENGTH_LONG).show(); 
         }
 
         // Set all required fields
         mItem.setName(name);
         mItem.setQuantity(quantity);
-        mItem.setImageUrl(mCurrentImageUrl);
 
         // For non-required fields, set if present, otherwise set as null
         String sku = mItemSkuEdit.getText().toString().trim();
@@ -252,44 +231,50 @@ public class ItemDialogFragment extends DialogFragment {
         mItem.setDescription(description.isEmpty() ? null : description);
 
         String price = mItemPriceEdit.getText().toString().trim();
-        try {
-            mItem.setPrice(price.isEmpty() ? null : Double.parseDouble(price));
-        }  catch (NumberFormatException e) {
-            Toast.makeText(requireContext(), "Please enter a valid price", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        mItem.setPrice(price.isEmpty() ? null : Double.parseDouble(price));
 
         if (mLocalImageUri != null) {
-            mConfirmButton.setEnabled(false);
-            mExitButton.setEnabled(false);
-            setCancelable(false);
-
-            ImageStorageHelper.uploadImage(mLocalImageUri, new ImageStorageHelper.UploadCallback() {
-                @Override
-                public void onStart() { }
-
-                @Override
-                public void onSuccess(String secureUrl, String publicId) {
-                    mCurrentImageUrl = secureUrl;
-                    mItem.setImageUrl(mCurrentImageUrl);
-                    mItem.setImagePublicId(publicId);
-                    finishSave();
-                }
-
-                @Override
-                public void onError(String message) {
-                    Toast.makeText(requireContext(), "Upload failed: " + message, Toast.LENGTH_SHORT).show();
-                    mConfirmButton.setEnabled(true);
-                    mExitButton.setEnabled(true);
-                    setCancelable(true);
-                }
-            });
+            handleImageUpload();
         } else {
             mItem.setImageUrl(mCurrentImageUrl);
             finishSave();
         }
     }
 
+    private boolean validateFields() {
+        // Validate required fields- name and quantity
+        String name = mItemNameEdit.getText().toString().trim();
+        if(name.isEmpty()){
+            mItemNameEdit.setError("Name Required");
+            return false;
+        }
+
+        // Checks if quantity field is empty
+        String quantityText = mItemQuantityEdit.getText().toString().trim();
+        if (quantityText.isEmpty()) {
+            mItemQuantityEdit.setError("Quantity Required");
+            return false;
+        }
+
+        // Checks if quantity is valid number
+        try {
+            Long.parseLong(quantityText);
+        } catch (NumberFormatException e) {
+            mItemQuantityEdit.setError("Invalid quantity");
+            return false;
+        }
+        // Check if price is valid
+        String price = mItemPriceEdit.getText().toString().trim();
+        if(!price.isEmpty()) {
+            try {
+                Double.parseDouble(price);
+            }  catch (NumberFormatException e) {
+                mItemPriceEdit.setError("Invalid Price");
+                return false;
+            }
+        }
+        return true;
+    }
 
     private void finishSave() {
         if (mListener != null) {
@@ -308,46 +293,30 @@ public class ItemDialogFragment extends DialogFragment {
         }
     }
 
-    // Handles SMS inventory alerts, checks permissions and preferences, sends SMS if permissions enabled
-    // Returns error if permissions not granted or in case of failure
-    private void sendLowInventoryAlert(String itemName) {
+    private void handleImageUpload() {
+        mConfirmButton.setEnabled(false);
+        mExitButton.setEnabled(false);
+        setCancelable(false);
 
-        SharedPreferences prefs = requireContext().getSharedPreferences("InventoryPrefs", Context.MODE_PRIVATE);
-        boolean alertsEnabled = prefs.getBoolean("sms_alerts_enabled", true);
+        ImageStorageHelper.uploadImage(mLocalImageUri, new ImageStorageHelper.UploadCallback() {
+            @Override
+            public void onStart() { }
 
-        if(!alertsEnabled) {
-            Log.d("SMS", "SMS permissions disabled by user");
-            return;
-        }
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.SEND_SMS)
-        != PackageManager.PERMISSION_GRANTED) {
-            // TODO set up internal notification system, bell icon with alert dialog, listing low inventory? can be simple
-            Log.d("SMS", "SMS Permissions have not been granted, skipping alert.");
-            return;
-        }
+            @Override
+            public void onSuccess(String secureUrl, String publicId) {
+                mCurrentImageUrl = secureUrl;
+                mItem.setImageUrl(mCurrentImageUrl);
+                mItem.setImagePublicId(publicId);
+                finishSave();
+            }
 
-        // Retrieve number from shared preferences
-        String phoneNumber = prefs.getString("alert_phone_number", null);
-
-        if(phoneNumber == null || phoneNumber.isEmpty()) {
-            Log.d("SMS", "No phone number saved, skipping alert");
-            return;
-        }
-
-        // Create alert message
-        String message = "Low Inventory Alert: " + itemName +
-                " is out of stock. Please consider replenishing.";
-
-        // Sends the SMS
-        try {
-            // Send SMS to saved number
-            SmsManager smsManager = requireContext().getSystemService(SmsManager.class);
-            smsManager.sendTextMessage(phoneNumber, null, message, null, null);
-            Log.d("SMS", "SMS sent to " + phoneNumber);
-        } catch (Exception e) {
-            Log.e("SMS", "Failed to send SMS " + e.getMessage());
-
-        }
+            @Override
+            public void onError(String message) {
+                Toast.makeText(requireContext(), "Upload failed: " + message, Toast.LENGTH_SHORT).show();
+                mConfirmButton.setEnabled(true);
+                mExitButton.setEnabled(true);
+                setCancelable(true);
+            }
+        });
     }
-
 }

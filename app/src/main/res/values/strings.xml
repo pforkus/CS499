@@ -55,6 +55,7 @@
     <string name="large">Large</string>
     <string name="sms_permissions">Sms Permissions</string>
     <string name="item_name_label">Name:</string>
+    <string name="largePricePlaceHolder">$9,999.99+</string>
 
 
 </resources>

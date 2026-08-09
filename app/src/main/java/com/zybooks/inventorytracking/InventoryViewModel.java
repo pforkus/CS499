@@ -114,6 +114,7 @@ public class InventoryViewModel extends AndroidViewModel {
             if (success) {
                 mNameTrie.delete(item.getName()); // Delete name from Trie
                 refreshItems();
+                loadCategories();
             }
             if (externalCallback != null) {
                 externalCallback.onResult(success);
@@ -128,6 +129,7 @@ public class InventoryViewModel extends AndroidViewModel {
                     mNameTrie.delete(item.getName());
                 }
                 refreshItems();
+                loadCategories();
             }
         });
     }
