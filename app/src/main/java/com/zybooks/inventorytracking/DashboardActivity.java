@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
@@ -327,6 +329,8 @@ public class DashboardActivity extends BaseActivity {
                 .findViewById(androidx.appcompat.R.id.search_plate);
         searchPlate.setBackground(
                 ContextCompat.getDrawable(this, R.drawable.search_field_background));
+                EditText searchEditText = mSearchView.findViewById(androidx.appcompat.R.id.search_src_text);
+                searchEditText.setTextColor(ContextCompat.getColor(this, R.color.forest_green_dark));
 
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override

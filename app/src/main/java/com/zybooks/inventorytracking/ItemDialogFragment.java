@@ -213,7 +213,7 @@ public class ItemDialogFragment extends DialogFragment {
         // Trigger SMS alert if item is out of stock
         if(quantity <= 0) {
             mSmsAlertManager.sendLowInventoryAlert(name);
-            Toast.makeText(requireContext(), name + " is out of stock, consider replenishing", Toast.LENGTH_LONG).show(); 
+            Toast.makeText(requireContext(), name + " is out of stock, consider replenishing", Toast.LENGTH_LONG).show();
         }
 
         // Set all required fields

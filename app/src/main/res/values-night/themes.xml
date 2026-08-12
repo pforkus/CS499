@@ -29,9 +29,13 @@
         <item name="android:background">@color/teal_dark</item>
         <item name="titleTextColor">@color/mint_light</item>
         <item name="navigationIconTint">?attr/colorOnPrimary</item>
+        <item name="android:theme">@style/CustomSearchViewStyle</item>
     </style>
 
-
+    <style name="CustomSearchViewStyle" parent="ThemeOverlay.Material3.Dark">
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorHint">@color/black</item>
+    </style>
 
     <style name="CardLabel" >
         <item name="android:textStyle">bold</item>
